@@ -18,16 +18,16 @@ export default function PasswordInput({
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.textOnDarkMuted}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={!visible}
         />
         <TouchableOpacity onPress={() => setVisible((prev) => !prev)}>
           {visible ? (
-            <EyeOff size={22} color={colors.textMuted} />
+            <EyeOff size={22} color={colors.textOnDarkMuted} />
           ) : (
-            <Eye size={22} color={colors.textMuted} />
+            <Eye size={22} color={colors.textOnDarkMuted} />
           )}
         </TouchableOpacity>
       </View>
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#334155',
+    color: colors.textOnDarkSecondary,
     marginBottom: 8,
   },
 
@@ -62,6 +62,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: colors.textPrimary,
+    color: colors.textOnLight,
   },
 });

@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
 
   secondaryText: {
-    color: colors.textPrimary,
+    color: colors.textOnLight,
     fontSize: 17,
     fontWeight: '600',
   },

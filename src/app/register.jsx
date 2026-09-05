@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import GradientBackground from '../components/GradientBackground';
 import FormInput from '../components/FormInput';
 import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
@@ -28,51 +29,53 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Sign up to get started with SoulSync</Text>
-      </View>
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Sign up to get started with SoulSync</Text>
+        </View>
 
-      <FormInput
-        label="Username"
-        placeholder="Enter username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
+        <FormInput
+          label="Username"
+          placeholder="Enter username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
 
-      <FormInput
-        label="Email"
-        placeholder="Enter email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+        <FormInput
+          label="Email"
+          placeholder="Enter email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
 
-      <PasswordInput
-        label="Password"
-        placeholder="Enter password"
-        value={password}
-        onChangeText={setPassword}
-      />
+        <PasswordInput
+          label="Password"
+          placeholder="Enter password"
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <PasswordInput
-        label="Confirm Password"
-        placeholder="Re-enter password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
+        <PasswordInput
+          label="Confirm Password"
+          placeholder="Re-enter password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
 
-      <Button title="Sign Up" onPress={handleRegister} />
+        <Button title="Sign Up" onPress={handleRegister} />
 
-      <TouchableOpacity onPress={() => router.push('/login')}>
-        <Text style={styles.footerText}>
-          Already have an account? <Text style={styles.footerLink}>Log in</Text>
-        </Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity onPress={() => router.push('/login')}>
+          <Text style={styles.footerText}>
+            Already have an account? <Text style={styles.footerLink}>Log in</Text>
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -81,7 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
 
   header: {
@@ -91,19 +94,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.textOnDark,
     marginBottom: 8,
   },
 
   subtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: colors.textOnDarkSecondary,
   },
 
   footerText: {
     textAlign: 'center',
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.textOnDarkSecondary,
     marginTop: 8,
   },
 

@@ -16,7 +16,7 @@ export default function FormInput({
       <TextInput
         style={styles.input}
         placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textOnDarkMuted}
         value={value}
         onChangeText={onChangeText}
         autoCapitalize={autoCapitalize}
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#334155',
+    color: colors.textOnDarkSecondary,
     marginBottom: 8,
   },
 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 15,
     fontSize: 16,
-    color: colors.textPrimary,
+    color: colors.textOnLight,
     backgroundColor: colors.inputBackground,
   },
 });

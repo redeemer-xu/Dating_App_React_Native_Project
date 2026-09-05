@@ -1,9 +1,14 @@
 export const colors = {
-  background: '#FFFFFF',
+  background: '#0D0D0F',
   inputBackground: '#F4F6FC',
   border: '#E2E8F0',
-  textPrimary: '#0F172A',
-  textSecondary: '#64748B',
-  textMuted: '#94A3B8',
-  primary: 'blue',
+  primary: '#007AFF',
+
+  // Text sitting on the dark gradient background
+  textOnDark: '#FFFFFF',
+  textOnDarkSecondary: '#CBD5E1',
+  textOnDarkMuted: '#94A3B8',
+
+  // Text sitting on light surfaces (input fields, secondary button)
+  textOnLight: '#0F172A',
 };
