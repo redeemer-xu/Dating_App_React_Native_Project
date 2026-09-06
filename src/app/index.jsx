@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import GradientBackground from '../components/GradientBackground';
@@ -10,7 +10,11 @@ export default function WelcomeScreen() {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.brand}>
-          <Text style={styles.logo}>SoulSync</Text>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.tagline}>Find your person, at your pace.</Text>
         </View>
 
@@ -47,10 +51,9 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: colors.textOnDark,
-    marginBottom: 10,
+    width: 220,
+    height: 220,
+    marginBottom: 4,
   },
 
   tagline: {

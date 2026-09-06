@@ -3,6 +3,7 @@ export const colors = {
   inputBackground: '#F4F6FC',
   border: '#E2E8F0',
   primary: '#007AFF',
+  error: '#EF4444',
 
   // Text sitting on the dark gradient background
   textOnDark: '#FFFFFF',
