@@ -2,17 +2,35 @@ import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import GradientBackground from '../components/GradientBackground';
 import FormInput from '../components/FormInput';
 import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
 import { authStyles } from '../theme/authStyles';
-import { isValidUsername, isValidPassword } from '../utils/validation';
+import { isValidEmail, isValidPassword } from '../utils/validation';
+
+function getFirebaseErrorMessage(code) {
+  switch (code) {
+    case 'auth/invalid-email':
+      return 'That email address is invalid.';
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'Incorrect email or password.';
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please try again later.';
+    default:
+      return 'Something went wrong. Please try again.';
+  }
+}
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const clearError = (field) => {
     if (errors[field]) {
@@ -20,13 +38,13 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const newErrors = {};
 
-    if (!username.trim()) {
-      newErrors.username = 'Username is required.';
-    } else if (!isValidUsername(username)) {
-      newErrors.username = 'Username must be at least 3 characters.';
+    if (!email.trim()) {
+      newErrors.email = 'Email is required.';
+    } else if (!isValidEmail(email)) {
+      newErrors.email = 'Enter a valid email address.';
     }
 
     if (!password) {
@@ -36,12 +54,17 @@ export default function LoginScreen() {
     }
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
-    if (Object.keys(newErrors).length > 0) {
-      return;
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      Alert.alert('Login Successful', 'Welcome back!');
+    } catch (err) {
+      Alert.alert('Login Failed', getFirebaseErrorMessage(err.code));
+    } finally {
+      setLoading(false);
     }
-
-    Alert.alert('Login Successful', `Welcome, ${username}!`);
   };
 
   return (
@@ -53,15 +76,16 @@ export default function LoginScreen() {
         </View>
 
         <FormInput
-          label="Username"
-          placeholder="Enter username"
-          value={username}
+          label="Email"
+          placeholder="Enter email"
+          value={email}
           onChangeText={(text) => {
-            setUsername(text);
-            clearError('username');
+            setEmail(text);
+            clearError('email');
           }}
           autoCapitalize="none"
-          error={errors.username}
+          keyboardType="email-address"
+          error={errors.email}
         />
 
         <PasswordInput
@@ -75,7 +99,10 @@ export default function LoginScreen() {
           error={errors.password}
         />
 
-        <Button title="Login" onPress={handleLogin} />
+        <Button
+          title={loading ? 'Logging in...' : 'Login'}
+          onPress={handleLogin}
+        />
 
         <TouchableOpacity onPress={() => router.push('/register')}>
           <Text style={authStyles.footerText}>
