@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import GradientBackground from '../components/GradientBackground';
 import FormInput from '../components/FormInput';
 import PasswordInput from '../components/PasswordInput';
@@ -13,12 +15,26 @@ import {
   isValidPassword,
 } from '../utils/validation';
 
+function getFirebaseErrorMessage(code) {
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists.';
+    case 'auth/invalid-email':
+      return 'That email address is invalid.';
+    case 'auth/weak-password':
+      return 'Password is too weak.';
+    default:
+      return 'Something went wrong. Please try again.';
+  }
+}
+
 export default function RegisterScreen() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const clearError = (field) => {
     if (errors[field]) {
@@ -26,7 +42,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const newErrors = {};
 
     if (!username.trim()) {
@@ -54,12 +70,24 @@ export default function RegisterScreen() {
     }
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
-    if (Object.keys(newErrors).length > 0) {
-      return;
+    setLoading(true);
+    try {
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+      await updateProfile(credential.user, { displayName: username.trim() });
+      Alert.alert('Account Created', `Welcome, ${username}!`, [
+        { text: 'OK', onPress: () => router.push('/login') },
+      ]);
+    } catch (err) {
+      Alert.alert('Registration Failed', getFirebaseErrorMessage(err.code));
+    } finally {
+      setLoading(false);
     }
-
-    Alert.alert('Account Created', `Welcome, ${username}!`);
   };
 
   return (
@@ -119,7 +147,10 @@ export default function RegisterScreen() {
           error={errors.confirmPassword}
         />
 
-        <Button title="Sign Up" onPress={handleRegister} />
+        <Button
+          title={loading ? 'Creating account...' : 'Sign Up'}
+          onPress={handleRegister}
+        />
 
         <TouchableOpacity onPress={() => router.push('/login')}>
           <Text style={authStyles.footerText}>
