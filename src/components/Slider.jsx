@@ -11,8 +11,6 @@ export default function Slider({ min, max, value, step = 1, onChange }) {
 
   const percentFor = (v) => (max === min ? 0 : (v - min) / (max - min));
 
-  // Measure the track on layout, then respond directly to the touch's x
-  // position within it — simpler and more reliable than accumulating deltas.
   const handleTouch = (evt) => {
     if (!trackWidth) return;
     const x = evt.nativeEvent.locationX;

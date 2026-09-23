@@ -3,12 +3,7 @@ import { Heart, Lock } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../theme/colors';
 
-/**
- * Renders a low-opacity image with a dark scrim to approximate a "blurred"
- * card without pulling in an extra native blur dependency. Swap the Image's
- * blurRadius / wrap it in <BlurView> from `expo-blur` if you add that
- * package later for a true blur.
- */
+
 export default function SecretAdmirerCard({ admirer, onUnlockAll }) {
   return (
     <TouchableOpacity

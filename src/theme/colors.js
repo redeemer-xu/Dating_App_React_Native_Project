@@ -8,10 +8,11 @@ export const colors = {
   online: '#57C785',
   bubbleIncoming: '#2A2529',
   bubbleOutgoingGradient: ['#E47C83', '#B95768'],
-  inputBackground: '#F4F6FC',
+  inputBackground: '#010511',
   border: '#E2E8F0',
   primary: '#007AFF',
   error: '#EF4444',
+  white: '#FFFFFF',
 
   // Text sitting on the dark gradient background
   textOnDark: '#FFFFFF',

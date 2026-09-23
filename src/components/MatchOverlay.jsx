@@ -4,19 +4,6 @@ import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../theme/colors';
 import Avatar from './Avatar';
 
-/**
- * "It's a Match!" celebration overlay.
- *
- * Props:
- * - isVisible: boolean
- * - onClose: () => void                 (called for "Keep Swiping" and the backdrop)
- * - matchedUser: { id, name, avatar }   (the person who just matched)
- * - currentUserAvatar: string           (your own avatar, for the overlap effect)
- * - onSendMessage?: () => void          (optional override; defaults to navigating to the chat)
- *
- * Note: icons use lucide-react-native to stay consistent with the rest of
- * the codebase (see PasswordInput.jsx), rather than @expo/vector-icons.
- */
 export default function MatchOverlay({
   isVisible,
   onClose,

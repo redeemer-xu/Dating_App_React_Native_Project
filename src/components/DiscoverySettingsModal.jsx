@@ -8,15 +8,6 @@ import Slider from './Slider';
 
 const SHOW_ME_OPTIONS = ['Women', 'Men', 'Everyone'];
 
-/**
- * Discovery Settings bottom sheet.
- *
- * Props:
- * - isVisible: boolean
- * - onClose: () => void
- * - filters: { distance: number, ageRange: [number, number], showMe: string, verifiedOnly: boolean }
- * - onApply: (filters) => void   called when "Done" is pressed, with the edited filters
- */
 export default function DiscoverySettingsModal({ isVisible, onClose, filters, onApply }) {
   const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState(filters);

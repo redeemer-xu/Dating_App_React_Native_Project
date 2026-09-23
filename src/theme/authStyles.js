@@ -16,7 +16,7 @@ export const authStyles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: colors.textOnDark,
+    color: '#FFFFFF',
     marginBottom: 8,
   },
 

@@ -56,7 +56,7 @@ export default function OnboardingStepOne() {
         <Text style={styles.heading}>Let's start with the basics</Text>
 
         <OnboardingTextField
-          label="First Name"
+          label="Nickname"
           value={data.firstName}
           onChangeText={(firstName) => {
             update({ firstName });
