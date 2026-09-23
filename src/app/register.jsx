@@ -1,18 +1,18 @@
+import { router } from 'expo-router';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../config/firebase';
-import GradientBackground from '../components/GradientBackground';
-import FormInput from '../components/FormInput';
-import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
+import GradientBackground from '../components/GradientBackground';
+import OnboardingTextField from '../components/OnboardingTextField';
+import PasswordInput from '../components/PasswordInput';
+import { auth } from '../config/firebase';
 import { authStyles } from '../theme/authStyles';
 import {
-  isValidUsername,
   isValidEmail,
   isValidPassword,
+  isValidUsername,
 } from '../utils/validation';
 
 function getFirebaseErrorMessage(code) {
@@ -100,7 +100,7 @@ export default function RegisterScreen() {
           </Text>
         </View>
 
-        <FormInput
+        <OnboardingTextField
           label="Username"
           placeholder="Enter username"
           value={username}
@@ -112,7 +112,7 @@ export default function RegisterScreen() {
           error={errors.username}
         />
 
-        <FormInput
+        <OnboardingTextField
           label="Email"
           placeholder="Enter email"
           value={email}

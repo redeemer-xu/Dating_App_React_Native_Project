@@ -1,15 +1,18 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../config/firebase';
-import GradientBackground from '../components/GradientBackground';
-import FormInput from '../components/FormInput';
-import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
+import GradientBackground from '../components/GradientBackground';
+import OnboardingTextField from '../components/OnboardingTextField';
+import PasswordInput from '../components/PasswordInput';
+import { auth } from '../config/firebase';
 import { authStyles } from '../theme/authStyles';
 import { isValidEmail, isValidPassword } from '../utils/validation';
+
+const ONBOARDING_KEY = 'soulsync_onboarding_completed';
 
 function getFirebaseErrorMessage(code) {
   switch (code) {
@@ -58,8 +61,17 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      Alert.alert('Login Successful', 'Welcome back!');
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      const onboardingCompleted = await AsyncStorage.getItem(
+        `${ONBOARDING_KEY}:${credential.user.uid}`
+      );
+
+      router.replace(onboardingCompleted ? '/home' : '/onboarding/step-1');
     } catch (err) {
       Alert.alert('Login Failed', getFirebaseErrorMessage(err.code));
     } finally {
@@ -75,7 +87,7 @@ export default function LoginScreen() {
           <Text style={authStyles.subtitle}>Log in to continue to SoulSync</Text>
         </View>
 
-        <FormInput
+        <OnboardingTextField
           label="Email"
           placeholder="Enter email"
           value={email}
