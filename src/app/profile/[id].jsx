@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Heart, MessageCircle, X } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -82,24 +82,6 @@ export default function ProfileDetailScreen() {
           </View>
         </View>
       </ScrollView>
-
-      <SafeAreaView edges={['bottom']} style={styles.actionBar}>
-        <TouchableOpacity style={[styles.actionCircle, styles.passCircle]} activeOpacity={0.85}>
-          <X size={24} color={colors.textOnDark} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.actionCircle, styles.likeCircle]} activeOpacity={0.85}>
-          <Heart size={28} color="#FFFFFF" fill="#FFFFFF" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionCircle, styles.passCircle]}
-          activeOpacity={0.85}
-          onPress={() => router.push(`/chat/${profile.id}`)}
-        >
-          <MessageCircle size={22} color={colors.textOnDark} />
-        </TouchableOpacity>
-      </SafeAreaView>
     </View>
   );
 }
@@ -115,7 +97,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   scrollContent: {
-    paddingBottom: 130,
+    paddingBottom: 40,
   },
   hero: {
     height: 460,
@@ -203,41 +185,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     rowGap: 10,
-  },
-  actionBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 24,
-    paddingTop: 16,
-    backgroundColor: 'rgba(15,15,17,0.85)',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-  },
-  actionCircle: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 999,
-  },
-  passCircle: {
-    width: 56,
-    height: 56,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  likeCircle: {
-    width: 68,
-    height: 68,
-    backgroundColor: colors.accent,
-    shadowColor: colors.accent,
-    shadowOpacity: 0.5,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
   },
 });

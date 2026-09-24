@@ -1,11 +1,16 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../theme/colors';
 
-export default function DiscoveryCard({ profile }) {
+export default function DiscoveryCard({ profile, onPress }) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.95}
+      onPress={onPress}
+      disabled={!onPress}
+    >
       <Image
         source={{ uri: profile.images[0] }}
         style={StyleSheet.absoluteFill}
@@ -32,7 +37,7 @@ export default function DiscoveryCard({ profile }) {
         <Text style={styles.meta}>{profile.title}</Text>
         <Text style={styles.meta}>{profile.distance}</Text>
       </LinearGradient>
-    </View>
+    </TouchableOpacity>
   );
 }
 

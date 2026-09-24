@@ -2,11 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../theme/colors';
 
-/**
- * Circular avatar used across headers, sparks list, and chat.
- * - `ringed` draws the coral "new spark" ring around the avatar
- * - `online` draws a small green presence dot in the bottom-right corner
- */
+
 export default function Avatar({ uri, size = 48, ringed = false, online = false }) {
   const dimension = ringed ? size + 6 : size;
 

@@ -54,7 +54,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.cardContainer}>
-          <DiscoveryCard profile={profile} />
+          <DiscoveryCard profile={profile} onPress={() => router.push(`/profile/${profile.id}`)} />
         </View>
 
         <View style={styles.actions}>

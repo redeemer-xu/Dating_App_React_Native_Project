@@ -1,6 +1,3 @@
-// Placeholder data layer. Swap these for real API/Firestore calls once the
-// backend is wired up — every screen only reads from the functions below,
-// so that's the one place you'd need to change.
 
 export const currentUser = {
   id: 'me',
