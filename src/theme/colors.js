@@ -1,9 +1,18 @@
 export const colors = {
   background: '#0D0D0F',
-  inputBackground: '#F4F6FC',
+  card: '#1B171A',
+  cardAlt: '#2A1A20',
+  divider: '#3A2A30',
+  accent: '#E47C83',
+  accentSoft: '#3D252D',
+  online: '#57C785',
+  bubbleIncoming: '#2A2529',
+  bubbleOutgoingGradient: ['#E47C83', '#B95768'],
+  inputBackground: '#010511',
   border: '#E2E8F0',
   primary: '#007AFF',
   error: '#EF4444',
+  white: '#FFFFFF',
 
   // Text sitting on the dark gradient background
   textOnDark: '#FFFFFF',

@@ -4,7 +4,7 @@ export const mockUsers = [
   { id: '1', username: 'redeemer', email: 'redeemer@soulsync.com', password: '123456' },
   { id: '2', username: 'maya', email: 'maya@soulsync.com', password: 'maya123' },
   { id: '3', username: 'leo', email: 'leo@soulsync.com', password: 'leo123' },
-  { id: '4', username: 'maui', email: 'maui@gmail.com', password: 'maui123'}
+  { id: '4', username: 'maui', email: 'maui@gmail.com', password: 'maui123' }
 ];
 
 // Find a user whose email AND password both match

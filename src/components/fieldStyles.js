@@ -16,10 +16,15 @@ export const fieldStyles = StyleSheet.create({
   box: {
     height: 50,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
     borderRadius: 12,
     paddingHorizontal: 15,
-    backgroundColor: colors.inputBackground,
+    backgroundColor: colors.card,
+  },
+
+  inputText: {
+    fontSize: 16,
+    color: colors.textOnDark,
   },
 
   boxError: {
