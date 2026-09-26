@@ -1,55 +1,21 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { signOut } from 'firebase/auth';
 import { ArrowLeft, LogOut } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Avatar from '../../components/Avatar';
 import GradientBackground from '../../components/GradientBackground';
 import PromptCard from '../../components/PromptCard';
 import TagPill from '../../components/TagPill';
-import { auth } from '../../config/firebase';
+import { useAuth } from '../../context/AuthContext';
 import { discoveryProfiles } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 
-const onboardingDataKey = (uid) => `soulsync_onboarding_data:${uid}`;
-
 export default function MyProfileScreen() {
-  const user = auth.currentUser;
-  const [savedOnboarding, setSavedOnboarding] = useState(null);
+  const { currentUser: user, onboardingData: savedOnboarding, logout } = useAuth();
   const fallbackProfile = discoveryProfiles[0];
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadProfile = async () => {
-      if (!user?.uid) {
-        setSavedOnboarding(null);
-        return;
-      }
-
-      try {
-        const stored = await AsyncStorage.getItem(onboardingDataKey(user.uid));
-        if (isMounted) {
-          setSavedOnboarding(stored ? JSON.parse(stored) : null);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setSavedOnboarding(null);
-        }
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.uid]);
-
   const profile = savedOnboarding ?? fallbackProfile;
-  const name = savedOnboarding?.firstName || user?.displayName || 'Your Profile';
+  const name = savedOnboarding?.firstName || user?.username || 'Your Profile';
   const avatarUri = user?.photoURL || 'https://i.pravatar.cc/300?img=32';
   const bio = savedOnboarding?.promptAnswer || profile.bio;
   const tags = savedOnboarding?.interests?.length ? savedOnboarding.interests : profile.tags;
@@ -68,8 +34,8 @@ export default function MyProfileScreen() {
     savedOnboarding?.lookingFor?.length ? `Looking for ${savedOnboarding.lookingFor.join(', ')}` : null,
   ].filter(Boolean);
 
-  const handleSignOut = async () => {
-    await signOut(auth);
+  const handleSignOut = () => {
+    logout();
     router.replace('/');
   };
 

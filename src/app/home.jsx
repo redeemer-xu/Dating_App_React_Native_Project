@@ -9,7 +9,7 @@ import DiscoverySettingsModal from '../components/DiscoverySettingsModal';
 import GradientBackground from '../components/GradientBackground';
 import MatchOverlay from '../components/MatchOverlay';
 import ScreenHeader from '../components/ScreenHeader';
-import { auth } from '../config/firebase';
+import { useAuth } from '../context/AuthContext';
 import {
   currentUser,
   defaultDiscoveryFilters,
@@ -18,7 +18,7 @@ import {
 import { colors } from '../theme/colors';
 
 export default function HomeScreen() {
-  const user = auth.currentUser;
+  const { currentUser: user } = useAuth();
   const [profileIndex, setProfileIndex] = useState(0);
   const [filters, setFilters] = useState(defaultDiscoveryFilters);
   const [isSettingsVisible, setSettingsVisible] = useState(false);

@@ -1,3 +1,4 @@
+import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const { login, hasCompletedOnboarding } = useAuth();
 
   const clearError = (field) => {
     if (errors[field]) {
@@ -44,7 +46,8 @@ export default function LoginScreen() {
     const user = findUser(email, password);
 
     if (user) {
-      Alert.alert('Login Successful', `Welcome back, ${user.username}!`);
+      login(user);
+      router.replace(hasCompletedOnboarding ? '/home' : '/onboarding/step-1');
     } else {
       Alert.alert('Login Failed', 'Incorrect email or password.');
     }

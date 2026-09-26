@@ -1,57 +1,44 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { onAuthStateChanged } from 'firebase/auth';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../config/firebase';
+import { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext({
-  isLoggedIn: false,
-  isLoading: true,
-  hasCompletedOnboarding: false,
-  markOnboardingComplete: () => {},
-});
-
-const onboardingKey = (uid) => `soulsync_onboarding_completed:${uid}`;
-const onboardingDataKey = (uid) => `soulsync_onboarding_data:${uid}`;
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [uid, setUid] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // The whiteboard's contents
+  const [currentUser, setCurrentUser] = useState(null);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [onboardingData, setOnboardingData] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setIsLoggedIn(!!user);
-      setUid(user?.uid ?? null);
-
-      if (user) {
-        const stored = await AsyncStorage.getItem(onboardingKey(user.uid));
-        setHasCompletedOnboarding(stored === 'true');
-      } else {
-        setHasCompletedOnboarding(false);
-      }
-
-      setIsLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  const markOnboardingComplete = async (onboardingData = null) => {
-    if (!uid) return;
-
-    await AsyncStorage.setItem(onboardingKey(uid), 'true');
-
-    if (onboardingData) {
-      await AsyncStorage.setItem(onboardingDataKey(uid), JSON.stringify(onboardingData));
-    }
-
-    setHasCompletedOnboarding(true);
+  // BLANK 1: save the user who just logged in
+  const login = (user) => {
+    setCurrentUser(user);
   };
+
+  // BLANK 2: clear everything when signing out
+  const logout = () => {
+    setCurrentuser(null);
+    setHasCompletedOnboarding(false);
+    setOnboardingData(null);
+  };
+
+  const markOnboardingComplete = (data = null) => {
+    setHasCompletedOnboarding(true);
+    if (data) setOnboardingData(data);
+  };
+
+  // BLANK 3: true if someone is logged in, false if not
+  const isLoggedIn = currentUser !== null;
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, isLoading, hasCompletedOnboarding, markOnboardingComplete }}
+      value={{
+        currentUser,
+        isLoggedIn,
+        hasCompletedOnboarding,
+        onboardingData,
+        login,
+        logout,
+        markOnboardingComplete,
+      }}
     >
       {children}
     </AuthContext.Provider>
