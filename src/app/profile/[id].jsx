@@ -7,12 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PromptCard from '../../components/PromptCard';
 import TagPill from '../../components/TagPill';
-import { profiles } from '../../data/mockData';
+import { discoveryProfiles } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 
 export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
-  const profile = profiles[id];
+  const profile = discoveryProfiles.find((p) => p.id === id);
 
   if (!profile) {
     return (

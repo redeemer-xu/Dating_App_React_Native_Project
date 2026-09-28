@@ -1,26 +1,27 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, MoreVertical, Send } from 'lucide-react-native';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from "expo-router";
+import { ChevronLeft, MoreVertical, Send } from "lucide-react-native";
+import { useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  FlatList,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import Avatar from '../../components/Avatar';
-import MessageBubble from '../../components/MessageBubble';
-import { chatThreads, newSparks, profiles } from '../../data/mockData';
-import { colors } from '../../theme/colors';
+import Avatar from "../../components/Avatar";
+import MessageBubble from "../../components/MessageBubble";
+import { chatThreads, discoveryProfiles, newSparks } from "../../data/mockData";
+import { colors } from "../../theme/colors";
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
-  const fallbackProfile = profiles[id] ?? newSparks.find((spark) => spark.id === id);
+  const fallbackProfile =
+    discoveryProfiles.find((p) => p.id === id) ??
+    newSparks.find((spark) => spark.id === id);
   const thread =
     chatThreads[id] ??
     (fallbackProfile
@@ -29,12 +30,12 @@ export default function ChatScreen() {
           name: fallbackProfile.name,
           avatar: fallbackProfile.avatar ?? fallbackProfile.images?.[0],
           online: true,
-          matchedOn: 'TODAY',
+          matchedOn: "TODAY",
           messages: [],
         }
       : null);
   const [messages, setMessages] = useState(thread?.messages ?? []);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
 
   if (!thread) {
     return (
@@ -50,17 +51,17 @@ export default function ChatScreen() {
       ...prev,
       {
         id: `local-${Date.now()}`,
-        from: 'me',
+        from: "me",
         text: draft.trim(),
-        time: 'Now',
+        time: "Now",
         read: false,
       },
     ]);
-    setDraft('');
+    setDraft("");
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top", `bottom`]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
           <ChevronLeft size={26} color={colors.textOnDark} />
@@ -86,8 +87,8 @@ export default function ChatScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={90}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
         <FlatList
           data={messages}
@@ -112,7 +113,11 @@ export default function ChatScreen() {
             onChangeText={setDraft}
             multiline
           />
-          <TouchableOpacity style={styles.sendButton} activeOpacity={0.85} onPress={handleSend}>
+          <TouchableOpacity
+            style={styles.sendButton}
+            activeOpacity={0.85}
+            onPress={handleSend}
+          >
             <Send size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -128,34 +133,34 @@ const styles = StyleSheet.create({
   },
   missingText: {
     color: colors.textOnDarkSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 40,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.divider,
   },
   headerCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   headerTextGroup: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   headerName: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textOnDark,
   },
   onlineRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
     marginTop: 2,
   },
@@ -167,7 +172,7 @@ const styles = StyleSheet.create({
   },
   onlineLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.4,
     color: colors.online,
   },
@@ -176,7 +181,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   dateSeparator: {
-    alignSelf: 'center',
+    alignSelf: "center",
     backgroundColor: colors.card,
     borderRadius: 999,
     paddingHorizontal: 14,
@@ -185,13 +190,13 @@ const styles = StyleSheet.create({
   },
   dateSeparatorText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textOnDarkMuted,
     letterSpacing: 0.3,
   },
   composerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -213,7 +218,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
