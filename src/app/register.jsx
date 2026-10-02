@@ -1,19 +1,24 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import GradientBackground from '../components/GradientBackground';
-import FormInput from '../components/FormInput';
-import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
+import FormInput from '../components/FormInput';
+import GradientBackground from '../components/GradientBackground';
+import PasswordInput from '../components/PasswordInput';
+import { useAuth } from '../context/AuthContext';
+import { useOnboarding } from '../context/OnboardingContext';
+import { addUser } from '../data/mockUsers';
 import { authStyles } from '../theme/authStyles';
 import {
-  isValidUsername,
   isValidEmail,
   isValidPassword,
+  isValidUsername,
 } from '../utils/validation';
 
 export default function RegisterScreen() {
+  const { login } = useAuth();
+  const { reset } = useOnboarding();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,11 +60,13 @@ export default function RegisterScreen() {
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
+    const newUser = addUser(username, email, password);
+    reset();
+    login(newUser);
 
-    Alert.alert('Account Created', `Welcome, ${username}!`);
+    Alert.alert('Account Created', `Welcome, ${newUser.username}!`, [
+      { text: 'OK', onPress: () => router.replace('/onboarding/step-1') },
+    ]);
   };
 
   return (
