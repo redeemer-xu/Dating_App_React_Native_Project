@@ -1,14 +1,21 @@
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import PromptCard from '../components/PromptCard';
-import TagPill from '../components/TagPill';
-import { discoveryProfiles } from '../data/mockData';
-import { colors } from '../theme/colors';
+import Button from "../components/Button";
+import PromptCard from "../components/PromptCard";
+import TagPill from "../components/TagPill";
+import { discoveryProfiles } from "../data/mockData";
+import { colors } from "../theme/colors";
 
 export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -24,7 +31,10 @@ export default function ProfileDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.hero}>
           <Image
             source={{ uri: profile.images[0] }}
@@ -32,11 +42,11 @@ export default function ProfileDetailScreen() {
             contentFit="cover"
           />
           <LinearGradient
-            colors={['rgba(15,15,17,0.1)', 'transparent']}
+            colors={["rgba(15,15,17,0.1)", "transparent"]}
             style={styles.heroTopFade}
           />
           <LinearGradient
-            colors={['transparent', 'rgba(15,15,17,0.95)']}
+            colors={["transparent", "rgba(15,15,17,0.95)"]}
             locations={[0.4, 1]}
             style={styles.heroBottomFade}
           >
@@ -48,8 +58,11 @@ export default function ProfileDetailScreen() {
             <Text style={styles.heroMeta}>{profile.location}</Text>
           </LinearGradient>
 
-          <SafeAreaView edges={['top']} style={styles.heroHeader}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <SafeAreaView edges={["top"]} style={styles.heroHeader}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
               <ChevronLeft size={22} color={colors.textOnDark} />
             </TouchableOpacity>
             <Text style={styles.heroHeaderTitle}>User Detail</Text>
@@ -77,8 +90,18 @@ export default function ProfileDetailScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Prompt Cards</Text>
             {profile.prompts.map((prompt) => (
-              <PromptCard key={prompt.question} question={prompt.question} answer={prompt.answer} />
+              <PromptCard
+                key={prompt.question}
+                question={prompt.question}
+                answer={prompt.answer}
+              />
             ))}
+            <Button
+              title={`Message ${profile.name}`}
+              variant="accent"
+              glow
+              onPress={() => router.push(`/chat/${profile.id}`)}
+            />
           </View>
         </View>
       </ScrollView>
@@ -93,7 +116,7 @@ const styles = StyleSheet.create({
   },
   missingText: {
     color: colors.textOnDarkSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 40,
   },
   scrollContent: {
@@ -104,14 +127,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   heroTopFade: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: 100,
   },
   heroBottomFade: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
@@ -121,12 +144,12 @@ const styles = StyleSheet.create({
   },
   heroName: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.textOnDark,
   },
   heroAge: {
     fontSize: 22,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.textOnDarkSecondary,
   },
   heroMeta: {
@@ -135,13 +158,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   heroHeader: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 8,
   },
@@ -149,13 +172,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(15,15,17,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(15,15,17,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   heroHeaderTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textOnDark,
   },
   body: {
@@ -167,7 +190,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textOnDark,
     marginBottom: 12,
   },
@@ -182,8 +205,8 @@ const styles = StyleSheet.create({
     color: colors.textOnDarkSecondary,
   },
   tagWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     rowGap: 10,
   },
 });

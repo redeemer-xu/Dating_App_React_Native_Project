@@ -44,7 +44,7 @@ export default function HomeScreen() {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <ScreenHeader avatarUri={user?.photoURL ?? undefined} />
+        <ScreenHeader avatarUri={user?.avatar} />
 
         <View style={styles.headingRow}>
           <View style={styles.heading}>
