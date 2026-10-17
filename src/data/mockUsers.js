@@ -1,10 +1,35 @@
 
+const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=68";
 
 export const mockUsers = [
-  { id: '1', username: 'redeemer', email: 'redeemer@gmail.com', password: '123456' },
-  { id: '2', username: 'maya', email: 'maya@gmail.com', password: 'maya123' },
-  { id: '3', username: 'leo', email: 'leo@gmail.com', password: 'leo123' },
-  { id: '4', username: 'maui', email: 'maui@gmail.com', password: 'maui123' }
+  {
+    id: "1",
+    username: "redeemer",
+    email: "redeemer@gmail.com",
+    password: "123456",
+    avatar: "https://i.pravatar.cc/150?img=11",
+  },
+  {
+    id: "2",
+    username: "maya",
+    email: "maya@gmail.com",
+    password: "maya123",
+    avatar: "https://i.pravatar.cc/150?img=32",
+  },
+  {
+    id: "3",
+    username: "leo",
+    email: "leo@gmail.com",
+    password: "leo123",
+    avatar: "https://i.pravatar.cc/150?img=12",
+  },
+  {
+    id: "4",
+    username: "maui",
+    email: "maui@gmail.com",
+    password: "maui123",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
 ];
 
 // Find a user whose email AND password both match
@@ -12,14 +37,14 @@ export function findUser(email, password) {
   return mockUsers.find(
     (user) =>
       user.email.toLowerCase() === email.trim().toLowerCase() &&
-      user.password === password
+      user.password === password,
   );
 }
 
 // Check if an email is already taken
 export function emailExists(email) {
   return mockUsers.some(
-    (user) => user.email.toLowerCase() === email.trim().toLowerCase()
+    (user) => user.email.toLowerCase() === email.trim().toLowerCase(),
   );
 }
 
@@ -30,6 +55,7 @@ export function addUser(username, email, password) {
     username: username.trim(),
     email: email.trim().toLowerCase(),
     password,
+    avatar: DEFAULT_AVATAR,
   };
   mockUsers.push(newUser);
   return newUser;
