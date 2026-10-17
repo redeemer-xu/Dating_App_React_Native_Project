@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 import {
   ScrollView,
   StyleSheet,
@@ -19,14 +18,7 @@ export default function MatchesScreen() {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.replace("/home")}
-            style={styles.iconButton}
-          >
-            <ArrowLeft size={22} color={colors.textOnDark} />
-          </TouchableOpacity>
           <Text style={styles.title}>Matches</Text>
-          <View style={styles.iconButton} />
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -74,14 +66,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 10,
   },
   title: {
     color: colors.textOnDark,
