@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CheckCheck } from 'lucide-react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, onLongPress }) {
   const isMe = message.from === 'me';
 
   const content = (
@@ -30,7 +30,7 @@ export default function MessageBubble({ message }) {
   );
 
   return (
-    <View style={[styles.row, isMe ? styles.rowMe : styles.rowThem]}>
+    <Pressable onLongPress={onLongPress} style={[styles.row, isMe ? styles.rowMe : styles.rowThem]}>
       {isMe ? (
         <LinearGradient
           colors={colors.bubbleOutgoingGradient}
@@ -43,7 +43,7 @@ export default function MessageBubble({ message }) {
       ) : (
         <View style={[styles.bubble, styles.bubbleThem]}>{content}</View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
