@@ -81,6 +81,57 @@ export const discoveryProfiles = [
       { question: "Unpopular opinion", answer: "Digital photos have no soul." },
     ],
   },
+  {
+    id: "noah",
+    name: "Noah",
+    age: 27,
+    title: "Chef",
+    location: "London, UK",
+    distance: "4 miles away",
+    avatar: "https://i.pravatar.cc/150?img=14",
+    bio: "I cook like my grandma is watching. Will trade homemade pasta for good conversation.",
+    images: [
+      "https://picsum.photos/seed/noah1/900/1400",
+      "https://picsum.photos/seed/noah2/900/1400",
+    ],
+    tags: ["Cooking", "Food Markets", "Jazz", "Cycling"],
+    prompts: [
+      {
+        question: "The best way to win me over is",
+        answer:
+          "Eat the last bite and tell me it was the best thing you've had all week.",
+      },
+      {
+        question: "Together we could",
+        answer: "Open a tiny pop-up restaurant for exactly one night.",
+      },
+    ],
+  },
+  {
+    id: "ivy",
+    name: "Ivy",
+    age: 25,
+    title: "Graphic Designer",
+    location: "London, UK",
+    distance: "2 miles away",
+    avatar: "https://i.pravatar.cc/150?img=47",
+    bio: "Professional font snob and amateur plant mom. My Spotify Wrapped is embarrassing and I'm proud of it.",
+    images: [
+      "https://picsum.photos/seed/ivy1/900/1400",
+      "https://picsum.photos/seed/ivy2/900/1400",
+    ],
+    tags: ["Design", "Plants", "Concerts", "Art Galleries"],
+    prompts: [
+      {
+        question: "Green flag I look for",
+        answer: "You notice the little details, like when I change my hair.",
+      },
+      {
+        question: "One thing I can never live without is",
+        answer: "A sketchbook and way too many pens.",
+      },
+    ],
+  },
 ];
 
 export const newSparks = [
