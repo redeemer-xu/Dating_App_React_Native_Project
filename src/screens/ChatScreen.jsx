@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, MoreVertical, Send } from "lucide-react-native";
 import { useState } from "react";
 import {
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   StyleSheet,
@@ -9,9 +10,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useChat } from "../context/ChatContext";
 
 import Avatar from "../components/Avatar";
 import MessageBubble from "../components/MessageBubble";
@@ -35,7 +36,10 @@ export default function ChatScreen() {
           messages: [],
         }
       : null);
-  const [messages, setMessages] = useState(thread?.messages ?? []);
+  const { chats, updateMessages } = useChat();
+  const starterMessages = thread?.messages ?? [];
+  const messages = chats[id] ?? starterMessages;
+  const setMessages = (updater) => updateMessages(id, starterMessages, updater);
   const [draft, setDraft] = useState("");
 
   if (!thread) {
@@ -63,16 +67,20 @@ export default function ChatScreen() {
 
   const deleteMessage = (id) => {
     setMessages((prev) => prev.filter((m) => m.id !== id));
-  }
+  };
 
   const confirmDelete = (message) => {
     if (message.from !== "me") return;
 
     Alert.alert("Delete message?", "This can't be undone.", [
-      {text: "Cancel", style: "cancel"},
-      {text: "Delete", style: "destructive", onPress: () => deleteMessage(message.id)}
-    ])
-  }
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => deleteMessage(message.id),
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top", `bottom`]}>
@@ -116,8 +124,11 @@ export default function ChatScreen() {
             </View>
           }
           renderItem={({ item }) => (
-          <MessageBubble message={item} onLongPress={() => confirmDelete(item)} />
-        )}
+            <MessageBubble
+              message={item}
+              onLongPress={() => confirmDelete(item)}
+            />
+          )}
         />
 
         <View style={styles.composerRow}>

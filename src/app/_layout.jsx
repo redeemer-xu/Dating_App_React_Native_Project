@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "../context/AuthContext";
+import { ChatProvider } from "../context/ChatContext";
 import { OnboardingProvider } from "../context/OnboardingContext";
 
 export default function RootLayout() {
@@ -8,17 +9,19 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <OnboardingProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="login" />
-            <Stack.Screen name="register" />
-            <Stack.Screen name="onboarding" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="profile/me" />
-            <Stack.Screen name="profile/[id]" />
-            <Stack.Screen name="chat/[id]" />
-            <Stack.Screen name="profile/edit" />
-          </Stack>
+          <ChatProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="login" />
+              <Stack.Screen name="register" />
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="profile/me" />
+              <Stack.Screen name="profile/[id]" />
+              <Stack.Screen name="chat/[id]" />
+              <Stack.Screen name="profile/edit" />
+            </Stack>
+          </ChatProvider>
         </OnboardingProvider>
       </AuthProvider>
     </SafeAreaProvider>
