@@ -1,8 +1,3 @@
-export const currentUser = {
-  id: "me",
-  avatar: "https://i.pravatar.cc/150?img=68",
-};
-
 export const defaultDiscoveryFilters = {
   distance: 25,
   ageRange: [22, 32],
@@ -18,6 +13,7 @@ export const discoveryProfiles = [
     title: "Interior Designer",
     location: "London, UK",
     distance: "3 miles away",
+    avatar: "https://i.pravatar.cc/150?img=32",
     bio: "Turning empty rooms into stories. Always chasing golden hour and good coffee. Let's argue about mid-century furniture.",
     images: [
       "https://picsum.photos/seed/maya1/900/1400",
@@ -43,6 +39,7 @@ export const discoveryProfiles = [
     title: "Software Engineer",
     location: "London, UK",
     distance: "5 miles away",
+    avatar: "https://i.pravatar.cc/150?img=12",
     bio: "Building things by day, climbing things by weekend. Looking for a partner in crime for terrible puns.",
     images: [
       "https://picsum.photos/seed/leo1/900/1400",
@@ -67,6 +64,7 @@ export const discoveryProfiles = [
     title: "Photographer",
     location: "London, UK",
     distance: "1 mile away",
+    avatar: "https://i.pravatar.cc/150?img=25",
     bio: "I see the world in frames. Currently obsessed with film photography and oat milk lattes.",
     images: [
       "https://picsum.photos/seed/jules1/900/1400",

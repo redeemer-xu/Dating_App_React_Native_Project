@@ -4,6 +4,7 @@ export const mockUsers = [
   {
     id: "1",
     username: "redeemer",
+    name: "Redeemer",
     email: "redeemer@gmail.com",
     password: "123456",
     avatar: "https://i.pravatar.cc/150?img=11",
@@ -11,6 +12,7 @@ export const mockUsers = [
   {
     id: "2",
     username: "maya",
+    name: "Maya",
     email: "maya@gmail.com",
     password: "maya123",
     avatar: "https://i.pravatar.cc/150?img=32",
@@ -18,6 +20,7 @@ export const mockUsers = [
   {
     id: "3",
     username: "leo",
+    name: "Leonardo",
     email: "leo@gmail.com",
     password: "leo123",
     avatar: "https://i.pravatar.cc/150?img=12",
@@ -25,6 +28,7 @@ export const mockUsers = [
   {
     id: "4",
     username: "maui",
+    name: "Alexander",
     email: "maui@gmail.com",
     password: "maui123",
     avatar: "https://i.pravatar.cc/150?img=5",
