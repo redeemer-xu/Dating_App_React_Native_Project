@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -60,6 +61,19 @@ export default function ChatScreen() {
     setDraft("");
   };
 
+  const deleteMessage = (id) => {
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }
+
+  const confirmDelete = (message) => {
+    if (message.from !== "me") return;
+
+    Alert.alert("Delete message?", "This can't be undone.", [
+      {text: "Cancel", style: "cancel"},
+      {text: "Delete", style: "destructive", onPress: () => deleteMessage(message.id)}
+    ])
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={["top", `bottom`]}>
       <View style={styles.header}>
@@ -101,7 +115,9 @@ export default function ChatScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => <MessageBubble message={item} />}
+          renderItem={({ item }) => (
+          <MessageBubble message={item} onLongPress={() => confirmDelete(item)} />
+        )}
         />
 
         <View style={styles.composerRow}>
