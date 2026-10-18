@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { updateUser } from "../data/mockUsers";
 
 const AuthContext = createContext(null);
 
@@ -20,6 +21,11 @@ export function AuthProvider({ children }) {
     setOnboardingData(null);
   };
 
+  const updateProfile = (changes) => {
+    updateUser(currentUser.id, changes);
+    setCurrentUser((prev) => ({ ...prev, ...changes }));
+  };
+
   const markOnboardingComplete = (data = null) => {
     setHasCompletedOnboarding(true);
     if (data) setOnboardingData(data);
@@ -37,6 +43,7 @@ export function AuthProvider({ children }) {
         onboardingData,
         login,
         logout,
+        updateProfile,
         markOnboardingComplete,
       }}
     >
