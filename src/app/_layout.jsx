@@ -17,6 +17,7 @@ export default function RootLayout() {
             <Stack.Screen name="profile/me" />
             <Stack.Screen name="profile/[id]" />
             <Stack.Screen name="chat/[id]" />
+            <Stack.Screen name="profile/edit" />
           </Stack>
         </OnboardingProvider>
       </AuthProvider>

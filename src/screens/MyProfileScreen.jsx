@@ -3,6 +3,7 @@ import { ArrowLeft, LogOut } from "lucide-react-native";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
+import Button from "../components/Button";
 import GradientBackground from "../components/GradientBackground";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
@@ -19,9 +20,13 @@ export default function MyProfileScreen() {
   const fallbackProfile = discoveryProfiles[0];
 
   const profile = savedOnboarding ?? fallbackProfile;
-  const name = savedOnboarding?.firstName || user?.username || "Your Profile";
+  const name =
+    user?.name ||
+    savedOnboarding?.firstName ||
+    user?.username ||
+    "Your Profile";
   const avatarUri = user?.avatar || "https://i.pravatar.cc/300?img=32";
-  const bio = savedOnboarding?.promptAnswer || profile.bio;
+  const bio = user?.bio || savedOnboarding?.promptAnswer || profile.bio;
   const tags = savedOnboarding?.interests?.length
     ? savedOnboarding.interests
     : profile.tags;
@@ -73,6 +78,11 @@ export default function MyProfileScreen() {
 
         <Text style={styles.sectionTitle}>About you</Text>
         <Text style={styles.bio}>{bio}</Text>
+        <Button
+          title="Edit Profile"
+          variant="secondary"
+          onPress={() => router.push("/profile/edit")}
+        />
 
         {savedOnboarding?.birthday ||
         savedOnboarding?.lookingFor?.length ||

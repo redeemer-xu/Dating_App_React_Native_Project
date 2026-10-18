@@ -1,4 +1,3 @@
-
 const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=68";
 
 export const mockUsers = [
@@ -59,4 +58,11 @@ export function addUser(username, email, password) {
   };
   mockUsers.push(newUser);
   return newUser;
+}
+
+// update an existing user's info
+export function updateUser(id, changes) {
+  const user = mockUsers.find((u) => u.id === id);
+  if (user) Object.assign(user, changes);
+  return user;
 }
