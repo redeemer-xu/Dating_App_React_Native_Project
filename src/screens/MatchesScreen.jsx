@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -48,7 +49,12 @@ export default function MatchesScreen() {
               <SecretAdmirerCard
                 key={admirer.id}
                 admirer={admirer}
-                onUnlockAll={() => {}}
+                onUnlockAll={() =>
+                  Alert.alert(
+                    "SoulSync Premium",
+                    "Seeing everyone who liked you is comming soon!",
+                  )
+                }
               />
             ))}
           </View>
