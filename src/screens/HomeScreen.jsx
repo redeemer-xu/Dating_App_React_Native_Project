@@ -17,9 +17,8 @@ import MatchOverlay from "../components/MatchOverlay";
 import ScreenHeader from "../components/ScreenHeader";
 import { useAuth } from "../context/AuthContext";
 import {
-  currentUser,
   defaultDiscoveryFilters,
-  discoveryProfiles,
+  discoveryProfiles
 } from "../data/mockData";
 import { colors } from "../theme/colors";
 
@@ -105,7 +104,7 @@ export default function HomeScreen() {
           isVisible={!!matchedUser}
           onClose={() => setMatchedUser(null)}
           matchedUser={matchedUser}
-          currentUserAvatar={currentUser.avatar}
+          currentUserAvatar={user?.avatar}
         />
       </SafeAreaView>
     </GradientBackground>

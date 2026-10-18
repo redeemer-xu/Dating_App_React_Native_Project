@@ -95,7 +95,6 @@ export default function ChatScreen() {
             <Text style={styles.headerName}>{thread.name}</Text>
             {thread.online && (
               <View style={styles.onlineRow}>
-                <View style={styles.onlineDot} />
                 <Text style={styles.onlineLabel}>ONLINE NOW</Text>
               </View>
             )}
@@ -190,12 +189,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
     marginTop: 2,
-  },
-  onlineDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.online,
   },
   onlineLabel: {
     fontSize: 10,

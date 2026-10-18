@@ -1,6 +1,12 @@
 import { router } from "expo-router";
 import { ArrowLeft, LogOut } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
@@ -8,7 +14,6 @@ import GradientBackground from "../components/GradientBackground";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useAuth } from "../context/AuthContext";
-import { discoveryProfiles } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function MyProfileScreen() {
@@ -17,19 +22,18 @@ export default function MyProfileScreen() {
     onboardingData: savedOnboarding,
     logout,
   } = useAuth();
-  const fallbackProfile = discoveryProfiles[0];
 
-  const profile = savedOnboarding ?? fallbackProfile;
   const name =
     user?.name ||
     savedOnboarding?.firstName ||
     user?.username ||
     "Your Profile";
   const avatarUri = user?.avatar || "https://i.pravatar.cc/300?img=32";
-  const bio = user?.bio || savedOnboarding?.promptAnswer || profile.bio;
-  const tags = savedOnboarding?.interests?.length
-    ? savedOnboarding.interests
-    : profile.tags;
+  const bio =
+    user?.bio ||
+    savedOnboarding?.promptAnswer ||
+    "No bio yet. Tap Edit Profile to add one.";
+  const tags = savedOnboarding?.interests ?? [];
   const prompts = savedOnboarding?.promptQuestion
     ? [
         {
@@ -37,15 +41,7 @@ export default function MyProfileScreen() {
           answer: savedOnboarding.promptAnswer,
         },
       ]
-    : profile.prompts;
-
-  const metaDetails = [
-    savedOnboarding?.birthday,
-    savedOnboarding?.showMe,
-    savedOnboarding?.lookingFor?.length
-      ? `Looking for ${savedOnboarding.lookingFor.join(", ")}`
-      : null,
-  ].filter(Boolean);
+    : [];
 
   const handleSignOut = () => {
     logout();
@@ -68,60 +64,76 @@ export default function MyProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.profileHeader}>
-          <Avatar uri={avatarUri} size={96} />
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.meta}>
-            {savedOnboarding ? metaDetails.join(" • ") : profile.title}
-          </Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>About you</Text>
-        <Text style={styles.bio}>{bio}</Text>
-        <Button
-          title="Edit Profile"
-          variant="secondary"
-          onPress={() => router.push("/profile/edit")}
-        />
-
-        {savedOnboarding?.birthday ||
-        savedOnboarding?.lookingFor?.length ||
-        savedOnboarding?.showMe ? (
-          <View style={styles.detailsGrid}>
-            {savedOnboarding?.birthday ? (
-              <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>Birthday</Text>
-                <Text style={styles.detailValue}>
-                  {savedOnboarding.birthday}
-                </Text>
-              </View>
-            ) : null}
-            {savedOnboarding?.showMe ? (
-              <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>Show me</Text>
-                <Text style={styles.detailValue}>{savedOnboarding.showMe}</Text>
-              </View>
-            ) : null}
-            {savedOnboarding?.lookingFor?.length ? (
-              <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>Looking for</Text>
-                <Text style={styles.detailValue}>
-                  {savedOnboarding.lookingFor.join(", ")}
-                </Text>
-              </View>
-            ) : null}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.profileHeader}>
+            <Avatar uri={avatarUri} size={96} />
+            <Text style={styles.name}>{name}</Text>
+            <View style={styles.editButton}>
+              <Button
+                title="Edit Profile"
+                variant="secondary"
+                onPress={() => router.push("/profile/edit")}
+              />
+            </View>
           </View>
-        ) : null}
 
-        <View style={styles.tags}>
-          {tags.map((tag) => (
-            <TagPill key={tag} label={tag} />
-          ))}
-        </View>
+          <Text style={styles.sectionTitle}>About you</Text>
+          <Text style={styles.bio}>{bio}</Text>
 
-        {prompts.map((prompt) => (
-          <PromptCard key={prompt.question} {...prompt} />
-        ))}
+          {savedOnboarding?.birthday ||
+          savedOnboarding?.lookingFor?.length ||
+          savedOnboarding?.showMe ? (
+            <View style={styles.detailsGrid}>
+              {savedOnboarding?.birthday ? (
+                <View style={styles.detailCard}>
+                  <Text style={styles.detailLabel}>Birthday</Text>
+                  <Text style={styles.detailValue}>
+                    {savedOnboarding.birthday}
+                  </Text>
+                </View>
+              ) : null}
+              {savedOnboarding?.showMe ? (
+                <View style={styles.detailCard}>
+                  <Text style={styles.detailLabel}>Show me</Text>
+                  <Text style={styles.detailValue}>
+                    {savedOnboarding.showMe}
+                  </Text>
+                </View>
+              ) : null}
+              {savedOnboarding?.lookingFor?.length ? (
+                <View style={styles.detailCard}>
+                  <Text style={styles.detailLabel}>Looking for</Text>
+                  <Text style={styles.detailValue}>
+                    {savedOnboarding.lookingFor.join(", ")}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+
+          <Text style={styles.sectionTitle}>Interests</Text>
+          {tags.length > 0 ? (
+            <View style={styles.tags}>
+              {tags.map((tag) => (
+                <TagPill key={tag} label={tag} />
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>No interests added yet.</Text>
+          )}
+
+          {prompts.length > 0 ? (
+            <>
+              <Text style={styles.sectionTitle}>Prompts</Text>
+              {prompts.map((prompt) => (
+                <PromptCard key={prompt.question} {...prompt} />
+              ))}
+            </>
+          ) : null}
+        </ScrollView>
       </SafeAreaView>
     </GradientBackground>
   );
@@ -149,6 +161,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
   },
+  scrollContent: {
+    paddingBottom: 32,
+  },
   profileHeader: {
     alignItems: "center",
     paddingVertical: 18,
@@ -159,10 +174,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 12,
   },
-  meta: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 14,
-    marginTop: 4,
+  editButton: {
+    alignSelf: "stretch",
+    marginTop: 16,
   },
   sectionTitle: {
     color: colors.textOnDark,
@@ -174,18 +188,24 @@ const styles = StyleSheet.create({
     color: colors.textOnDarkSecondary,
     fontSize: 15,
     lineHeight: 22,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   tags: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginBottom: 18,
+    marginBottom: 20,
+  },
+  emptyText: {
+    color: colors.textOnDarkSecondary,
+    fontSize: 14,
+    fontStyle: "italic",
+    marginBottom: 20,
   },
   detailsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginBottom: 18,
+    marginBottom: 20,
   },
   detailCard: {
     flexBasis: "48%",
