@@ -29,18 +29,13 @@ export default function MyProfileScreen() {
     user?.username ||
     "Your Profile";
   const avatarUri = user?.avatar || "https://i.pravatar.cc/300?img=32";
-  const bio =
-    user?.bio ||
-    savedOnboarding?.promptAnswer ||
-    "No bio yet. Tap Edit Profile to add one.";
-  const tags = savedOnboarding?.interests ?? [];
-  const prompts = savedOnboarding?.promptQuestion
-    ? [
-        {
-          question: savedOnboarding.promptQuestion,
-          answer: savedOnboarding.promptAnswer,
-        },
-      ]
+  const bio = user?.bio || "No bio yet. Tap Edit Profile to add one.";
+  const tags = user?.interests ?? savedOnboarding?.interests ?? [];
+  const promptQuestion =
+    user?.promptQuestion ?? savedOnboarding?.promptQuestion;
+  const promptAnswer = user?.promptAnswer ?? savedOnboarding?.promptAnswer;
+  const prompts = promptQuestion
+    ? [{ question: promptQuestion, answer: promptAnswer }]
     : [];
 
   const handleSignOut = () => {
