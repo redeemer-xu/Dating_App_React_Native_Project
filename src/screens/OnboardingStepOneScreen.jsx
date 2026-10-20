@@ -1,24 +1,24 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from "expo-router";
+import { useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import Button from '../components/Button';
-import OnboardingHeader from '../components/OnboardingHeader';
-import OnboardingTextField from '../components/OnboardingTextField';
-import SelectableChip from '../components/SelectableChip';
-import { useOnboarding } from '../context/OnboardingContext';
-import { colors } from '../theme/colors';
+import Button from "../components/Button";
+import FormInput from "../components/FormInput";
+import OnboardingHeader from "../components/OnboardingHeader";
+import SelectableChip from "../components/SelectableChip";
+import { useOnboarding } from "../context/OnboardingContext";
+import { colors } from "../theme/colors";
 
-const SHOW_ME_OPTIONS = ['Women', 'Men', 'Everyone'];
-const LOOKING_FOR_OPTIONS = ['Long-term', 'Casual', 'Not Sure'];
+const SHOW_ME_OPTIONS = ["Women", "Men", "Everyone"];
+const LOOKING_FOR_OPTIONS = ["Long-term", "Casual", "Not Sure"];
 
 export default function OnboardingStepOne() {
   const { data, update } = useOnboarding();
   const [errors, setErrors] = useState({});
 
   const formatBirthday = (value) => {
-    const digits = value.replace(/\D/g, '').slice(0, 8);
+    const digits = value.replace(/\D/g, "").slice(0, 8);
 
     if (digits.length <= 2) return digits;
     if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
@@ -30,32 +30,35 @@ export default function OnboardingStepOne() {
     const nextErrors = {};
 
     if (!data.firstName.trim()) {
-      nextErrors.firstName = 'First name is required.';
+      nextErrors.firstName = "First name is required.";
     }
 
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data.birthday.trim())) {
-      nextErrors.birthday = 'Enter your birthday in MM/DD/YYYY format.';
+      nextErrors.birthday = "Enter your birthday in MM/DD/YYYY format.";
     }
 
     if (data.lookingFor.length === 0) {
-      nextErrors.lookingFor = 'Please choose at least one option.';
+      nextErrors.lookingFor = "Please choose at least one option.";
     }
 
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    router.push('/onboarding/step-2');
+    router.push("/onboarding/step-2");
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <OnboardingHeader step={1} showLogo onBack={() => router.back()} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.heading}>Let's start with the basics</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.heading}>{"Let's start with the basics"}</Text>
 
-        <OnboardingTextField
+        <FormInput
           label="Nickname"
           value={data.firstName}
           onChangeText={(firstName) => {
@@ -66,7 +69,7 @@ export default function OnboardingStepOne() {
           error={errors.firstName}
         />
 
-        <OnboardingTextField
+        <FormInput
           label="Birthday"
           value={data.birthday}
           onChangeText={(birthday) => {
@@ -91,7 +94,9 @@ export default function OnboardingStepOne() {
           ))}
         </View>
 
-        <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Looking For</Text>
+        <Text style={[styles.sectionLabel, { marginTop: 24 }]}>
+          Looking For
+        </Text>
         <View style={styles.chipRow}>
           {LOOKING_FOR_OPTIONS.map((option) => (
             <SelectableChip
@@ -105,15 +110,13 @@ export default function OnboardingStepOne() {
             />
           ))}
         </View>
-        {errors.lookingFor ? <Text style={styles.errorText}>{errors.lookingFor}</Text> : null}
+        {errors.lookingFor ? (
+          <Text style={styles.errorText}>{errors.lookingFor}</Text>
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button
-          title="Continue"
-          variant="accent"
-          onPress={handleContinue}
-        />
+        <Button title="Continue" variant="accent" onPress={handleContinue} />
       </View>
     </SafeAreaView>
   );
@@ -130,19 +133,19 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.textOnDark,
     marginBottom: 24,
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textOnDarkSecondary,
     marginBottom: 12,
   },
   chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   footer: {
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.error,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginTop: 8,
   },
 });
