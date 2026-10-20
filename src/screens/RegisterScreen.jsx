@@ -62,7 +62,6 @@ export default function RegisterScreen() {
     if (Object.keys(newErrors).length > 0) return;
 
     const newUser = addUser(username, email, password);
-    console.log({ username, email, password });
 
     login(newUser);
     router.replace("/onboarding/step-1");

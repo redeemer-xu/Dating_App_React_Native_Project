@@ -41,8 +41,6 @@ export default function LoginScreen() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    console.log({ email, password });
-
     const user = findUser(email, password);
 
     if (user) {
