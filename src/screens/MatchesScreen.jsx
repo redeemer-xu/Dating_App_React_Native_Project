@@ -16,11 +16,26 @@ import { discoveryProfiles, secretAdmirers } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function MatchesScreen() {
-  const { matchIds } = useMatches();
+  const { matchIds, removeMatch } = useMatches();
   // turn the saved ids into full profiles (name, avatar...)
   const sparks = matchIds
     .map((id) => discoveryProfiles.find((p) => p.id === id))
     .filter(Boolean);
+
+  const confirmUnmatch = (spark) => {
+    Alert.alert(
+      `Unmatch with ${spark.name}?`,
+      "They will be removed from your matches.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unmatch",
+          style: "destructive",
+          onPress: () => removeMatch(spark.id),
+        },
+      ],
+    );
+  };
 
   return (
     <GradientBackground>
@@ -31,6 +46,9 @@ export default function MatchesScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionTitle}>New sparks</Text>
+          {sparks.length > 0 ? (
+            <Text style={styles.hint}>Hold a profile to unmatch</Text>
+          ) : null}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -45,6 +63,7 @@ export default function MatchesScreen() {
               <TouchableOpacity
                 key={spark.id}
                 onPress={() => router.push(`/chat/${spark.id}`)}
+                onLongPress={() => confirmUnmatch(spark)}
               >
                 <Avatar uri={spark.avatar} size={62} ringed />
                 <Text style={styles.sparkName}>{spark.name}</Text>
@@ -101,6 +120,12 @@ const styles = StyleSheet.create({
   sparkRow: {
     gap: 16,
     paddingBottom: 28,
+  },
+  hint: {
+    color: colors.textOnDarkMuted,
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 12,
   },
   emptyText: {
     color: colors.textOnDarkMuted,

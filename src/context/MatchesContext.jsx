@@ -13,8 +13,13 @@ export function MatchesProvider({ children }) {
     setMatchIds((prev) => (prev.includes(id) ? prev : [id, ...prev]));
   };
 
+  const removeMatch = (id) => {
+    // keep everyone EXCEPT this id
+    setMatchIds((prev) => prev.filter((matchId) => matchId !== id));
+  };
+
   return (
-    <MatchesContext.Provider value={{ matchIds, addMatch }}>
+    <MatchesContext.Provider value={{ matchIds, addMatch, removeMatch }}>
       {children}
     </MatchesContext.Provider>
   );
