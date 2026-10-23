@@ -16,10 +16,7 @@ import GradientBackground from "../components/GradientBackground";
 import MatchOverlay from "../components/MatchOverlay";
 import ScreenHeader from "../components/ScreenHeader";
 import { useAuth } from "../context/AuthContext";
-import {
-  defaultDiscoveryFilters,
-  discoveryProfiles
-} from "../data/mockData";
+import { defaultDiscoveryFilters, discoveryProfiles } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function HomeScreen() {
@@ -28,12 +25,23 @@ export default function HomeScreen() {
   const [filters, setFilters] = useState(defaultDiscoveryFilters);
   const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
-  const profile = discoveryProfiles[profileIndex];
+  // Only keep the profiles that fit the filters
+  const visibleProfiles = discoveryProfiles.filter((p) => {
+    const miles = parseInt(p.distance, 10); // "3 miles away" -> 3
+    const [minAge, maxAge] = filters.ageRange;
+    return p.age >= minAge && p.age <= maxAge && miles <= filters.distance;
+  });
+  const profile = visibleProfiles[profileIndex];
 
   const showNextProfile = () => {
     setProfileIndex(
-      (currentIndex) => (currentIndex + 1) % discoveryProfiles.length,
+      (currentIndex) => (currentIndex + 1) % visibleProfiles.length,
     );
+  };
+
+  const applyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setProfileIndex(0); // start from the first person in the new list
   };
 
   const handleLike = () => {
@@ -60,31 +68,42 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.cardContainer}>
-          <DiscoveryCard
-            profile={profile}
-            onPress={() => router.push(`/profile/${profile.id}`)}
-          />
-        </View>
+        {profile ? (
+          <>
+            <View style={styles.cardContainer}>
+              <DiscoveryCard
+                profile={profile}
+                onPress={() => router.push(`/profile/${profile.id}`)}
+              />
+            </View>
 
-        <View style={styles.actions}>
-          <ActionButton variant="pass" onPress={showNextProfile}>
-            <X size={24} color={colors.textOnDarkSecondary} />
-          </ActionButton>
-          <ActionButton variant="like" size={64} onPress={handleLike}>
-            <Heart
-              size={28}
-              color={colors.textOnDark}
-              fill={colors.textOnDark}
-            />
-          </ActionButton>
-          <ActionButton
-            variant="chat"
-            onPress={() => router.push(`/chat/${profile.id}`)}
-          >
-            <MessageCircle size={23} color={colors.textOnDarkSecondary} />
-          </ActionButton>
-        </View>
+            <View style={styles.actions}>
+              <ActionButton variant="pass" onPress={showNextProfile}>
+                <X size={24} color={colors.textOnDarkSecondary} />
+              </ActionButton>
+              <ActionButton variant="like" size={64} onPress={handleLike}>
+                <Heart
+                  size={28}
+                  color={colors.textOnDark}
+                  fill={colors.textOnDark}
+                />
+              </ActionButton>
+              <ActionButton
+                variant="chat"
+                onPress={() => router.push(`/chat/${profile.id}`)}
+              >
+                <MessageCircle size={23} color={colors.textOnDarkSecondary} />
+              </ActionButton>
+            </View>
+          </>
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>No one matches your filters</Text>
+            <Text style={styles.emptyText}>
+              Try a wider age range or a bigger distance.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.statusRow}>
           <Flame size={15} color={colors.accent} fill={colors.accent} />
@@ -97,7 +116,7 @@ export default function HomeScreen() {
           isVisible={isSettingsVisible}
           onClose={() => setSettingsVisible(false)}
           filters={filters}
-          onApply={setFilters}
+          onApply={applyFilters}
         />
 
         <MatchOverlay
@@ -112,6 +131,24 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    color: colors.textOnDark,
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  emptyText: {
+    color: colors.textOnDarkSecondary,
+    fontSize: 15,
+    textAlign: "center",
+  },
   container: {
     flex: 1,
     paddingHorizontal: 20,
