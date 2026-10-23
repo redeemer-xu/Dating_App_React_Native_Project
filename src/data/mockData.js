@@ -15,10 +15,7 @@ export const discoveryProfiles = [
     distance: "3 miles away",
     avatar: "https://i.pravatar.cc/150?img=32",
     bio: "Turning empty rooms into stories. Always chasing golden hour and good coffee. Let's argue about mid-century furniture.",
-    images: [
-      "https://picsum.photos/seed/maya1/900/1400",
-      "https://picsum.photos/seed/maya2/900/1400",
-    ],
+    images: ["https://i.pravatar.cc/600?img=32"],
     tags: ["Vintage Hunting", "Architecture", "Late Night", "Coffee Snob"],
     prompts: [
       {
@@ -41,10 +38,7 @@ export const discoveryProfiles = [
     distance: "5 miles away",
     avatar: "https://i.pravatar.cc/150?img=12",
     bio: "Building things by day, climbing things by weekend. Looking for a partner in crime for terrible puns.",
-    images: [
-      "https://picsum.photos/seed/leo1/900/1400",
-      "https://picsum.photos/seed/leo2/900/1400",
-    ],
+    images: ["https://i.pravatar.cc/600?img=12"],
     tags: ["Bouldering", "Board Games", "Terrible Puns"],
     prompts: [
       {
@@ -66,10 +60,7 @@ export const discoveryProfiles = [
     distance: "1 mile away",
     avatar: "https://i.pravatar.cc/150?img=25",
     bio: "I see the world in frames. Currently obsessed with film photography and oat milk lattes.",
-    images: [
-      "https://picsum.photos/seed/jules1/900/1400",
-      "https://picsum.photos/seed/jules2/900/1400",
-    ],
+    images: ["https://i.pravatar.cc/600?img=25"],
     tags: ["Film Photography", "Indie Music", "Thrifting"],
     prompts: [
       {
@@ -88,10 +79,7 @@ export const discoveryProfiles = [
     distance: "4 miles away",
     avatar: "https://i.pravatar.cc/150?img=14",
     bio: "I cook like my grandma is watching. Will trade homemade pasta for good conversation.",
-    images: [
-      "https://picsum.photos/seed/noah1/900/1400",
-      "https://picsum.photos/seed/noah2/900/1400",
-    ],
+    images: ["https://i.pravatar.cc/600?img=14"],
     tags: ["Cooking", "Food Markets", "Jazz", "Cycling"],
     prompts: [
       {
@@ -114,10 +102,7 @@ export const discoveryProfiles = [
     distance: "2 miles away",
     avatar: "https://i.pravatar.cc/150?img=47",
     bio: "Professional font snob and amateur plant mom. My Spotify Wrapped is embarrassing and I'm proud of it.",
-    images: [
-      "https://picsum.photos/seed/ivy1/900/1400",
-      "https://picsum.photos/seed/ivy2/900/1400",
-    ],
+    images: ["https://i.pravatar.cc/600?img=47"],
     tags: ["Design", "Plants", "Concerts", "Art Galleries"],
     prompts: [
       {
