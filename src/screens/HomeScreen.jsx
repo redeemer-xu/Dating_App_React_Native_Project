@@ -10,42 +10,44 @@ import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ActionButton from "../components/ActionButton";
+import Button from "../components/Button";
 import DiscoveryCard from "../components/DiscoveryCard";
 import DiscoverySettingsModal from "../components/DiscoverySettingsModal";
 import GradientBackground from "../components/GradientBackground";
 import MatchOverlay from "../components/MatchOverlay";
 import ScreenHeader from "../components/ScreenHeader";
 import { useAuth } from "../context/AuthContext";
+import { useMatches } from "../context/MatchesContext";
 import { defaultDiscoveryFilters, discoveryProfiles } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function HomeScreen() {
   const { currentUser: user } = useAuth();
-  const [profileIndex, setProfileIndex] = useState(0);
+  const { addMatch } = useMatches();
+  const [seenIds, setSeenIds] = useState([]); // people you already liked or passed
   const [filters, setFilters] = useState(defaultDiscoveryFilters);
   const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
-  // Only keep the profiles that fit the filters
-  const visibleProfiles = discoveryProfiles.filter((p) => {
+  // 1) people who fit the filters
+  const matchingFilters = discoveryProfiles.filter((p) => {
     const miles = parseInt(p.distance, 10); // "3 miles away" -> 3
     const [minAge, maxAge] = filters.ageRange;
     return p.age >= minAge && p.age <= maxAge && miles <= filters.distance;
   });
-  const profile = visibleProfiles[profileIndex];
+  // 2) ...and that you haven't liked or passed yet
+  const visibleProfiles = matchingFilters.filter(
+    (p) => !seenIds.includes(p.id),
+  );
+  const profile = visibleProfiles[0]; // always show the first one left
 
-  const showNextProfile = () => {
-    setProfileIndex(
-      (currentIndex) => (currentIndex + 1) % visibleProfiles.length,
-    );
-  };
+  const markSeen = (id) => setSeenIds((prev) => [...prev, id]);
 
-  const applyFilters = (newFilters) => {
-    setFilters(newFilters);
-    setProfileIndex(0); // start from the first person in the new list
-  };
+  const handlePass = () => markSeen(profile.id);
 
   const handleLike = () => {
-    setMatchedUser(profile);
+    addMatch(profile.id); // goes to the Matches tab
+    markSeen(profile.id); // next person shows up
+    setMatchedUser(profile); // pop-up "It's a Match!"
   };
 
   return (
@@ -78,7 +80,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.actions}>
-              <ActionButton variant="pass" onPress={showNextProfile}>
+              <ActionButton variant="pass" onPress={handlePass}>
                 <X size={24} color={colors.textOnDarkSecondary} />
               </ActionButton>
               <ActionButton variant="like" size={64} onPress={handleLike}>
@@ -98,10 +100,30 @@ export default function HomeScreen() {
           </>
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No one matches your filters</Text>
-            <Text style={styles.emptyText}>
-              Try a wider age range or a bigger distance.
-            </Text>
+            {matchingFilters.length > 0 ? (
+              <>
+                <Text style={styles.emptyTitle}>
+                  You&apos;ve seen everyone for now
+                </Text>
+                <Text style={styles.emptyText}>
+                  Check your Matches, or bring back the profiles you passed.
+                </Text>
+                <Button
+                  title="Start over"
+                  variant="accent"
+                  onPress={() => setSeenIds([])}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.emptyTitle}>
+                  No one matches your filters
+                </Text>
+                <Text style={styles.emptyText}>
+                  Try a wider age range or a bigger distance.
+                </Text>
+              </>
+            )}
           </View>
         )}
 
@@ -116,7 +138,7 @@ export default function HomeScreen() {
           isVisible={isSettingsVisible}
           onClose={() => setSettingsVisible(false)}
           filters={filters}
-          onApply={applyFilters}
+          onApply={setFilters}
         />
 
         <MatchOverlay

@@ -11,10 +11,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import GradientBackground from "../components/GradientBackground";
 import SecretAdmirerCard from "../components/SecretAdmirerCard";
-import { newSparks, secretAdmirers } from "../data/mockData";
+import { useMatches } from "../context/MatchesContext";
+import { discoveryProfiles, secretAdmirers } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function MatchesScreen() {
+  const { matchIds } = useMatches();
+  // turn the saved ids into full profiles (name, avatar...)
+  const sparks = matchIds
+    .map((id) => discoveryProfiles.find((p) => p.id === id))
+    .filter(Boolean);
+
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
@@ -29,7 +36,12 @@ export default function MatchesScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.sparkRow}
           >
-            {newSparks.map((spark) => (
+            {sparks.length === 0 ? (
+              <Text style={styles.emptyText}>
+                No matches yet. Go like someone in Discover!
+              </Text>
+            ) : null}
+            {sparks.map((spark) => (
               <TouchableOpacity
                 key={spark.id}
                 onPress={() => router.push(`/chat/${spark.id}`)}
@@ -89,6 +101,11 @@ const styles = StyleSheet.create({
   sparkRow: {
     gap: 16,
     paddingBottom: 28,
+  },
+  emptyText: {
+    color: colors.textOnDarkMuted,
+    fontSize: 14,
+    paddingVertical: 20,
   },
   sparkName: {
     color: colors.textOnDarkSecondary,
