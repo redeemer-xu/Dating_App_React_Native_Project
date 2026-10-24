@@ -1,17 +1,25 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import GradientBackground from '../components/GradientBackground';
-import Button from '../components/Button';
-import { colors } from '../theme/colors';
+import { Redirect, router } from "expo-router";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Button from "../components/Button";
+import GradientBackground from "../components/GradientBackground";
+import { useAuth } from "../context/AuthContext";
+import { colors } from "../theme/colors";
 
 export default function WelcomeScreen() {
+  const { currentUser } = useAuth();
+
+  // Already logged in? Don't show the Welcome screen again (e.g. after pressing Back).
+  if (currentUser) {
+    return <Redirect href="/home" />;
+  }
+
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.brand}>
           <Image
-            source={require('../../assets/images/logo.png')}
+            source={require("../../assets/images/logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -19,11 +27,11 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.actions}>
-          <Button title="Log In" onPress={() => router.push('/login')} />
+          <Button title="Log In" onPress={() => router.push("/login")} />
           <Button
             title="Create Account"
             variant="secondary"
-            onPress={() => router.push('/register')}
+            onPress={() => router.push("/register")}
           />
         </View>
 
@@ -38,16 +46,16 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     paddingHorizontal: 24,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     paddingVertical: 60,
   },
 
   brand: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   logo: {
@@ -59,7 +67,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 16,
     color: colors.textOnDarkSecondary,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   actions: {
@@ -69,7 +77,7 @@ const styles = StyleSheet.create({
   footer: {
     fontSize: 12,
     color: colors.textOnDarkMuted,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
   },
 });

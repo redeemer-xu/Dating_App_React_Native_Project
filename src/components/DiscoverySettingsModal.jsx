@@ -1,21 +1,35 @@
-import { useEffect, useState } from 'react';
-import { Modal, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../theme/colors';
-import PillTabSwitcher from './PillTabSwitcher';
-import RangeSlider from './RangeSlider';
-import Slider from './Slider';
+import { useState } from "react";
+import {
+  Modal,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors } from "../theme/colors";
+import PillTabSwitcher from "./PillTabSwitcher";
+import RangeSlider from "./RangeSlider";
+import Slider from "./Slider";
 
-const SHOW_ME_OPTIONS = ['Women', 'Men', 'Everyone'];
+const SHOW_ME_OPTIONS = ["Women", "Men", "Everyone"];
 
-export default function DiscoverySettingsModal({ isVisible, onClose, filters, onApply }) {
+export default function DiscoverySettingsModal({
+  isVisible,
+  onClose,
+  filters,
+  onApply,
+}) {
   const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState(filters);
+  const [wasVisible, setWasVisible] = useState(isVisible);
 
-  // Re-sync the working copy whenever the sheet is (re)opened.
-  useEffect(() => {
+  // When the sheet is (re)opened, start the working copy from the saved filters.
+  if (isVisible !== wasVisible) {
+    setWasVisible(isVisible);
     if (isVisible) setDraft(filters);
-  }, [isVisible, filters]);
+  }
 
   const handleDone = () => {
     onApply?.(draft);
@@ -23,9 +37,18 @@ export default function DiscoverySettingsModal({ isVisible, onClose, filters, on
   };
 
   return (
-    <Modal visible={isVisible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={isVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <View style={styles.backdrop}>
-        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={onClose}
+        />
 
         <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
           <View style={styles.grabber} />
@@ -47,7 +70,9 @@ export default function DiscoverySettingsModal({ isVisible, onClose, filters, on
               max={100}
               step={1}
               value={draft.distance}
-              onChange={(distance) => setDraft((prev) => ({ ...prev, distance }))}
+              onChange={(distance) =>
+                setDraft((prev) => ({ ...prev, distance }))
+              }
             />
           </View>
 
@@ -62,7 +87,9 @@ export default function DiscoverySettingsModal({ isVisible, onClose, filters, on
               min={18}
               max={60}
               value={draft.ageRange}
-              onChange={(ageRange) => setDraft((prev) => ({ ...prev, ageRange }))}
+              onChange={(ageRange) =>
+                setDraft((prev) => ({ ...prev, ageRange }))
+              }
             />
           </View>
 
@@ -80,11 +107,15 @@ export default function DiscoverySettingsModal({ isVisible, onClose, filters, on
           <View style={[styles.section, styles.switchRow]}>
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.label}>Verified Profiles Only</Text>
-              <Text style={styles.helperText}>Only show people who've verified their photos</Text>
+              <Text style={styles.helperText}>
+                Only show people who&apos;ve verified their photos
+              </Text>
             </View>
             <Switch
               value={draft.verifiedOnly}
-              onValueChange={(verifiedOnly) => setDraft((prev) => ({ ...prev, verifiedOnly }))}
+              onValueChange={(verifiedOnly) =>
+                setDraft((prev) => ({ ...prev, verifiedOnly }))
+              }
               trackColor={{ false: colors.cardAlt, true: colors.accent }}
               thumbColor="#FFFFFF"
             />
@@ -98,8 +129,8 @@ export default function DiscoverySettingsModal({ isVisible, onClose, filters, on
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 15, 17, 0.6)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(15, 15, 17, 0.6)",
+    justifyContent: "flex-end",
   },
   sheet: {
     backgroundColor: colors.card,
@@ -109,7 +140,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   grabber: {
-    alignSelf: 'center',
+    alignSelf: "center",
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -117,37 +148,37 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 22,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textOnDark,
   },
   doneText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.accent,
   },
   section: {
     marginBottom: 26,
   },
   labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 14,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textOnDark,
   },
   valueText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.accent,
   },
   helperText: {
@@ -156,9 +187,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
 });

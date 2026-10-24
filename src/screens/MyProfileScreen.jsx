@@ -14,6 +14,8 @@ import GradientBackground from "../components/GradientBackground";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useAuth } from "../context/AuthContext";
+import { useChat } from "../context/ChatContext";
+import { useMatches } from "../context/MatchesContext";
 import { colors } from "../theme/colors";
 
 export default function MyProfileScreen() {
@@ -22,6 +24,9 @@ export default function MyProfileScreen() {
     onboardingData: savedOnboarding,
     logout,
   } = useAuth();
+
+  const { resetChats } = useChat();
+  const { resetMatches } = useMatches();
 
   const name =
     user?.name ||
@@ -39,6 +44,8 @@ export default function MyProfileScreen() {
     : [];
 
   const handleSignOut = () => {
+    resetChats(); // clear this user's messages
+    resetMatches(); // clear this user's matches
     logout();
     router.replace("/");
   };
