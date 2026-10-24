@@ -83,7 +83,7 @@ export default function MatchesScreen() {
                 onUnlockAll={() =>
                   Alert.alert(
                     "SoulSync Premium",
-                    "Seeing everyone who liked you is comming soon!",
+                    "Seeing everyone who liked you is coming soon!",
                   )
                 }
               />

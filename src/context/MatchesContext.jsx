@@ -18,8 +18,13 @@ export function MatchesProvider({ children }) {
     setMatchIds((prev) => prev.filter((matchId) => matchId !== id));
   };
 
+  // Used when someone signs out, so the next person starts clean
+  const resetMatches = () => setMatchIds(Object.keys(chatThreads));
+
   return (
-    <MatchesContext.Provider value={{ matchIds, addMatch, removeMatch }}>
+    <MatchesContext.Provider
+      value={{ matchIds, addMatch, removeMatch, resetMatches }}
+    >
       {children}
     </MatchesContext.Provider>
   );

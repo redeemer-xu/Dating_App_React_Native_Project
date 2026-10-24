@@ -13,8 +13,11 @@ export function ChatProvider({ children }) {
     }));
   };
 
+  // Used when someone signs out, so the next person starts clean
+  const resetChats = () => setChats({});
+
   return (
-    <ChatContext.Provider value={{ chats, updateMessages }}>
+    <ChatContext.Provider value={{ chats, updateMessages, resetChats }}>
       {children}
     </ChatContext.Provider>
   );

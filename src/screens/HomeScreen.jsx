@@ -40,11 +40,17 @@ export default function HomeScreen() {
   );
   const profile = visibleProfiles[0]; // always show the first one left
 
-  const markSeen = (id) => setSeenIds((prev) => [...prev, id]);
+  const markSeen = (id) =>
+    setSeenIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
-  const handlePass = () => markSeen(profile.id);
+  // "profile?.id" (with the ?) is important: when everyone has been seen,
+  // profile is undefined, and plain "profile.id" would crash the screen.
+  const handlePass = () => {
+    if (profile) markSeen(profile?.id);
+  };
 
   const handleLike = () => {
+    if (!profile) return;
     addMatch(profile.id); // goes to the Matches tab
     markSeen(profile.id); // next person shows up
     setMatchedUser(profile); // pop-up "It's a Match!"
@@ -108,11 +114,13 @@ export default function HomeScreen() {
                 <Text style={styles.emptyText}>
                   Check your Matches, or bring back the profiles you passed.
                 </Text>
-                <Button
-                  title="Start over"
-                  variant="accent"
-                  onPress={() => setSeenIds([])}
-                />
+                <View style={styles.startOverWrap}>
+                  <Button
+                    title="Start over"
+                    variant="accent"
+                    onPress={() => setSeenIds([])}
+                  />
+                </View>
               </>
             ) : (
               <>
@@ -165,6 +173,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     textAlign: "center",
+  },
+  startOverWrap: {
+    width: 220,
+    marginTop: 12,
   },
   emptyText: {
     color: colors.textOnDarkSecondary,

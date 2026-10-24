@@ -25,7 +25,10 @@ export default function EditProfileScreen() {
 
   // Start the inputs with the user's current info
   const [name, setName] = useState(
-    currentUser?.name ?? currentUser?.username ?? "",
+    currentUser?.name ??
+      onboardingData?.firstName ??
+      currentUser?.username ??
+      "",
   );
   const [bio, setBio] = useState(currentUser?.bio ?? "");
   const [interests, setInterests] = useState(

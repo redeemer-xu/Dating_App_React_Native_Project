@@ -28,7 +28,12 @@ export function AuthProvider({ children }) {
 
   const markOnboardingComplete = (data = null) => {
     setHasCompletedOnboarding(true);
-    if (data) setOnboardingData(data);
+    if (data) {
+      setOnboardingData(data);
+      // use the first photo they picked as their profile picture
+      const firstPhoto = data.photos?.find(Boolean);
+      if (firstPhoto) updateProfile({ avatar: firstPhoto });
+    }
   };
 
   // BLANK 3: true if someone is logged in, false if not

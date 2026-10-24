@@ -9,6 +9,7 @@ import OnboardingHeader from "../components/OnboardingHeader";
 import SelectableChip from "../components/SelectableChip";
 import { useOnboarding } from "../context/OnboardingContext";
 import { colors } from "../theme/colors";
+import { getAge, parseBirthday } from "../utils/validation";
 
 const SHOW_ME_OPTIONS = ["Women", "Men", "Everyone"];
 const LOOKING_FOR_OPTIONS = ["Long-term", "Casual", "Not Sure"];
@@ -33,8 +34,11 @@ export default function OnboardingStepOne() {
       nextErrors.firstName = "First name is required.";
     }
 
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data.birthday.trim())) {
-      nextErrors.birthday = "Enter your birthday in MM/DD/YYYY format.";
+    const birthDate = parseBirthday(data.birthday);
+    if (!birthDate) {
+      nextErrors.birthday = "Enter a real date in MM/DD/YYYY format.";
+    } else if (getAge(birthDate) < 18) {
+      nextErrors.birthday = "You must be at least 18 to use SoulSync.";
     }
 
     if (data.lookingFor.length === 0) {
