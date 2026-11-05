@@ -1,5 +1,8 @@
+import { teamPhotos } from "./team";
+
 const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=68";
 
+// Our group mates can log in with these accounts.
 export const mockUsers = [
   {
     id: "1",
@@ -7,31 +10,39 @@ export const mockUsers = [
     name: "Redeemer",
     email: "redeemer@gmail.com",
     password: "123456",
-    avatar: "https://i.pravatar.cc/150?img=11",
+    avatar: teamPhotos.redeemer,
   },
   {
     id: "2",
-    username: "maya",
-    name: "Maya",
-    email: "maya@gmail.com",
-    password: "maya123",
-    avatar: "https://i.pravatar.cc/150?img=32",
+    username: "jastin",
+    name: "Jastin",
+    email: "jastin@gmail.com",
+    password: "jastin123",
+    avatar: teamPhotos.jastin,
   },
   {
     id: "3",
-    username: "leo",
-    name: "Leonardo",
-    email: "leo@gmail.com",
-    password: "leo123",
-    avatar: "https://i.pravatar.cc/150?img=12",
+    username: "jennifer",
+    name: "Jennifer",
+    email: "jennifer@gmail.com",
+    password: "jennifer123",
+    avatar: teamPhotos.jennifer,
   },
   {
     id: "4",
-    username: "maui",
-    name: "Alexander",
-    email: "maui@gmail.com",
-    password: "maui123",
-    avatar: "https://i.pravatar.cc/150?img=5",
+    username: "shenaiah",
+    name: "Shenaiah",
+    email: "shenaiah@gmail.com",
+    password: "shenaiah123",
+    avatar: teamPhotos.shenaiah,
+  },
+  {
+    id: "5",
+    username: "tthrystan",
+    name: "Tthrystan",
+    email: "tthrystan@gmail.com",
+    password: "tthrystan123",
+    avatar: teamPhotos.tthrystan,
   },
 ];
 

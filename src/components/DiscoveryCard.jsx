@@ -1,7 +1,8 @@
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { colors } from "../theme/colors";
+import { imageSource } from "../utils/imageSource";
 
 export default function DiscoveryCard({ profile, onPress }) {
   return (
@@ -12,13 +13,13 @@ export default function DiscoveryCard({ profile, onPress }) {
       disabled={!onPress}
     >
       <Image
-        source={{ uri: profile.images[0] }}
+        source={imageSource(profile.images[0])}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         transition={200}
       />
       <LinearGradient
-        colors={['transparent', 'rgba(15,15,17,0.55)', 'rgba(15,15,17,0.95)']}
+        colors={["transparent", "rgba(15,15,17,0.55)", "rgba(15,15,17,0.95)"]}
         locations={[0, 0.55, 1]}
         style={styles.overlay}
       >
@@ -45,11 +46,11 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     borderRadius: 28,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: colors.card,
   },
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
@@ -58,14 +59,14 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   tagRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 12,
   },
   tagChip: {
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: "rgba(0,0,0,0.35)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: "rgba(255,255,255,0.25)",
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 5,
@@ -73,16 +74,16 @@ const styles = StyleSheet.create({
   tagText: {
     color: colors.textOnDark,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   name: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.textOnDark,
   },
   age: {
     fontSize: 22,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.textOnDarkSecondary,
   },
   meta: {
