@@ -1,8 +1,8 @@
-import { Image } from 'expo-image';
-import { Heart, Lock } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
-
+import { Image } from "expo-image";
+import { Heart, Lock } from "lucide-react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { colors } from "../theme/colors";
+import { imageSource } from "../utils/imageSource";
 
 export default function SecretAdmirerCard({ admirer, onUnlockAll }) {
   return (
@@ -12,7 +12,7 @@ export default function SecretAdmirerCard({ admirer, onUnlockAll }) {
       style={styles.card}
     >
       <Image
-        source={{ uri: admirer.avatar }}
+        source={imageSource(admirer.avatar)}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         blurRadius={18}
@@ -36,22 +36,22 @@ const styles = StyleSheet.create({
     flex: 1,
     aspectRatio: 1,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,15,17,0.55)',
+    backgroundColor: "rgba(15,15,17,0.55)",
   },
   unlockContent: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 6,
   },
   unlockText: {
     color: colors.accent,
-    fontWeight: '700',
+    fontWeight: "700",
     fontSize: 13,
   },
 });

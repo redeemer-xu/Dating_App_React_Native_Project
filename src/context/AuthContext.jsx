@@ -30,9 +30,8 @@ export function AuthProvider({ children }) {
     setHasCompletedOnboarding(true);
     if (data) {
       setOnboardingData(data);
-      // use the first photo they picked as their profile picture
-      const firstPhoto = data.photos?.find(Boolean);
-      if (firstPhoto) updateProfile({ avatar: firstPhoto });
+      // the photo they picked from the gallery becomes their profile picture
+      if (data.photo) updateProfile({ avatar: data.photo }); // use the first photo they picked as their profile picture
     }
   };
 

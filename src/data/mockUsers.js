@@ -7,6 +7,7 @@ export const mockUsers = [
   {
     id: "1",
     username: "redeemer",
+    profileId: "redeemer",
     name: "Redeemer",
     email: "redeemer@gmail.com",
     password: "123456",
@@ -15,6 +16,7 @@ export const mockUsers = [
   {
     id: "2",
     username: "jastin",
+    profileId: "jastin",
     name: "Jastin",
     email: "jastin@gmail.com",
     password: "jastin123",
@@ -23,6 +25,7 @@ export const mockUsers = [
   {
     id: "3",
     username: "jennifer",
+    profileId: "jennifer",
     name: "Jennifer",
     email: "jennifer@gmail.com",
     password: "jennifer123",
@@ -31,6 +34,7 @@ export const mockUsers = [
   {
     id: "4",
     username: "shenaiah",
+    profileId: "shenaiah",
     name: "Shenaiah",
     email: "shenaiah@gmail.com",
     password: "shenaiah123",
@@ -39,6 +43,7 @@ export const mockUsers = [
   {
     id: "5",
     username: "tthrystan",
+    profileId: "tthrystan",
     name: "Tthrystan",
     email: "tthrystan@gmail.com",
     password: "tthrystan123",
@@ -67,6 +72,7 @@ export function addUser(username, email, password) {
   const newUser = {
     id: String(mockUsers.length + 1),
     username: username.trim(),
+    profileId: `user-${mockUsers.length + 1}`, // their card in Discover (made after onboarding)
     email: email.trim().toLowerCase(),
     password,
     avatar: DEFAULT_AVATAR,

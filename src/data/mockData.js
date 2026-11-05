@@ -2,7 +2,7 @@ import { teamPhotos } from "./team";
 
 export const defaultDiscoveryFilters = {
   distance: 25,
-  ageRange: [22, 32],
+  ageRange: [18, 40],
   showMe: "Everyone",
   verifiedOnly: false,
 };
@@ -121,68 +121,6 @@ export const discoveryProfiles = [
     ],
   },
 ];
-
-export const newSparks = discoveryProfiles.map((p) => ({
-  id: p.id,
-  name: p.name,
-  avatar: p.avatar,
-}));
-
-export const secretAdmirers = [
-  { id: "a1", avatar: "https://i.pravatar.cc/300?img=5", locked: true },
-  { id: "a2", avatar: "https://i.pravatar.cc/300?img=8", locked: true },
-  { id: "a3", avatar: "https://i.pravatar.cc/300?img=15", locked: true },
-  {
-    id: "a4",
-    avatar: "https://i.pravatar.cc/300?img=21",
-    locked: true,
-    isUnlockAll: true,
-  },
-];
-
-export const chatThreads = {
-  jennifer: {
-    id: "jennifer",
-    name: "Jennifer",
-    avatar: teamPhotos.jennifer,
-    online: true,
-    matchedOn: "TODAY",
-    messages: [
-      {
-        id: "m1",
-        from: "them",
-        text: "Hey! Did you finish your part of the IT313 project? 😅",
-        time: "10:02 AM",
-      },
-      {
-        id: "m2",
-        from: "me",
-        text: "Almost! Just fixing one last bug",
-        time: "10:05 AM",
-        read: true,
-      },
-      {
-        id: "m3",
-        from: "them",
-        text: "Classic. What was the bug this time?",
-        time: "10:06 AM",
-      },
-      {
-        id: "m4",
-        from: "me",
-        text: "A missing question mark. Always a question mark.",
-        time: "10:10 AM",
-        read: true,
-      },
-      {
-        id: "m5",
-        from: "them",
-        text: "Haha okay, send it when it works. We can test it together",
-        time: "10:12 AM",
-      },
-    ],
-  },
-};
 
 export const interestOptions = [
   "Art",

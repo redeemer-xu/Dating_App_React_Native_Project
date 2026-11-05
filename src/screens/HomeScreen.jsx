@@ -18,26 +18,30 @@ import MatchOverlay from "../components/MatchOverlay";
 import ScreenHeader from "../components/ScreenHeader";
 import { useAuth } from "../context/AuthContext";
 import { useMatches } from "../context/MatchesContext";
-import { defaultDiscoveryFilters, discoveryProfiles } from "../data/mockData";
+import { useProfiles } from "../context/ProfilesContext";
+import { defaultDiscoveryFilters } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function HomeScreen() {
   const { currentUser: user } = useAuth();
-  const { addMatch } = useMatches();
+  const { addMatch, isHidden, matchIds } = useMatches();
+  const { profiles } = useProfiles();
   const [seenIds, setSeenIds] = useState([]); // people you already liked or passed
   const [filters, setFilters] = useState(defaultDiscoveryFilters);
   const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
   // 1) people who fit the filters
-  const matchingFilters = discoveryProfiles.filter((p) => {
-    if (p.id === user?.username) return false;
+  const matchingFilters = profiles.filter((p) => {
+    if (p.id === user?.profileId) return false; // never show yourself
+    if (isHidden(p.id)) return false; // blocked
     const miles = parseInt(p.distance, 10); // "3 miles away" -> 3
     const [minAge, maxAge] = filters.ageRange;
     return p.age >= minAge && p.age <= maxAge && miles <= filters.distance;
   });
   // 2) ...and that you haven't liked or passed yet
+  // (liked people stay hidden even after you log out and back in)
   const visibleProfiles = matchingFilters.filter(
-    (p) => !seenIds.includes(p.id),
+    (p) => !seenIds.includes(p.id) && !matchIds.includes(p.id),
   );
   const profile = visibleProfiles[0]; // always show the first one left
 

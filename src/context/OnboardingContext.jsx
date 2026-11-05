@@ -1,16 +1,16 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from "react";
 
 const OnboardingContext = createContext(null);
 
 const initialState = {
-  firstName: '',
-  birthday: '',
-  showMe: 'Everyone',
+  firstName: "",
+  birthday: "",
+  showMe: "Everyone",
   lookingFor: [],
-  photos: Array(6).fill(null),
+  photo: null, // profile picture picked from the gallery
   interests: [],
-  promptQuestion: '',
-  promptAnswer: '',
+  promptQuestion: "",
+  promptAnswer: "",
 };
 
 export function OnboardingProvider({ children }) {
@@ -28,6 +28,7 @@ export function OnboardingProvider({ children }) {
 
 export function useOnboarding() {
   const ctx = useContext(OnboardingContext);
-  if (!ctx) throw new Error('useOnboarding must be used within an OnboardingProvider');
+  if (!ctx)
+    throw new Error("useOnboarding must be used within an OnboardingProvider");
   return ctx;
 }
