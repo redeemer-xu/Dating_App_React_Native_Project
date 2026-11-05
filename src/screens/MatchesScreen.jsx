@@ -12,17 +12,45 @@ import Avatar from "../components/Avatar";
 import GradientBackground from "../components/GradientBackground";
 import SecretAdmirerCard from "../components/SecretAdmirerCard";
 import { useAuth } from "../context/AuthContext";
+import { useChat } from "../context/ChatContext";
 import { useMatches } from "../context/MatchesContext";
-import { discoveryProfiles, secretAdmirers } from "../data/mockData";
+import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 
 export default function MatchesScreen() {
-  const { matchIds, removeMatch } = useMatches();
   const { currentUser } = useAuth();
+  const { getProfile } = useProfiles();
+  const { getInbox } = useChat();
+  const { matchIds, removeMatch, isHidden, admirerIds } = useMatches();
+  const me = currentUser?.profileId;
+
   // turn the saved ids into full profiles (name, avatar...)
   const sparks = matchIds
-    .map((id) => discoveryProfiles.find((p) => p.id === id))
-    .filter((p) => p && p.id !== currentUser?.username); // never show yourself
+    .map((id) => getProfile(id))
+    .filter((p) => p && p.id !== me && !isHidden(p.id));
+
+  // my conversations, newest first (also messages people sent ME)
+  const inbox = getInbox(me)
+    .map((item) => ({ ...item, profile: getProfile(item.otherId) }))
+    .filter((item) => item.profile && !isHidden(item.otherId));
+
+  // people who liked me: show up to 3 blurred photos + the "Unlock All" box
+  const admirers = admirerIds.map((id) => getProfile(id)).filter(Boolean);
+  const admirerCards = admirers.slice(0, 3).map((p) => ({
+    id: p.id,
+    avatar: p.avatar,
+    locked: true,
+  }));
+  if (admirers.length > 0) {
+    admirerCards.push({
+      id: "unlock-all",
+      avatar: admirers[admirers.length - 1].avatar,
+      locked: true,
+      isUnlockAll: true,
+    });
+  }
+  // empty boxes keep the 4 columns the same size
+  const emptyBoxes = admirerCards.length > 0 ? 4 - admirerCards.length : 0;
 
   const confirmUnmatch = (spark) => {
     Alert.alert(
@@ -73,24 +101,63 @@ export default function MatchesScreen() {
             ))}
           </ScrollView>
 
+          <Text style={styles.sectionTitle}>Messages</Text>
+          {inbox.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No messages yet. Say hi to someone!
+            </Text>
+          ) : null}
+          {inbox.map(({ otherId, lastMessage, profile }) => (
+            <TouchableOpacity
+              key={otherId}
+              style={styles.inboxRow}
+              onPress={() => router.push(`/chat/${otherId}`)}
+            >
+              <Avatar uri={profile.avatar} size={52} />
+              <View style={styles.inboxText}>
+                <Text style={styles.inboxName}>{profile.name}</Text>
+                <Text style={styles.inboxPreview} numberOfLines={1}>
+                  {lastMessage.senderId === me ? "You: " : ""}
+                  {lastMessage.text}
+                </Text>
+              </View>
+              <Text style={styles.inboxTime}>{lastMessage.time}</Text>
+            </TouchableOpacity>
+          ))}
+
           <View style={styles.matchesHeading}>
             <Text style={styles.sectionTitle}>Secret admirers</Text>
-            <Text style={styles.caption}>Someone likes you</Text>
+            <Text style={styles.caption}>
+              {admirers.length === 0
+                ? ""
+                : admirers.length === 1
+                  ? "1 person likes you"
+                  : `${admirers.length} people like you`}
+            </Text>
           </View>
-          <View style={styles.admirerGrid}>
-            {secretAdmirers.map((admirer) => (
-              <SecretAdmirerCard
-                key={admirer.id}
-                admirer={admirer}
-                onUnlockAll={() =>
-                  Alert.alert(
-                    "SoulSync Premium",
-                    "Seeing everyone who liked you is coming soon!",
-                  )
-                }
-              />
-            ))}
-          </View>
+          {admirers.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No secret admirers yet. Keep your profile awesome!
+            </Text>
+          ) : (
+            <View style={styles.admirerGrid}>
+              {admirerCards.map((admirer) => (
+                <SecretAdmirerCard
+                  key={admirer.id}
+                  admirer={admirer}
+                  onUnlockAll={() =>
+                    Alert.alert(
+                      "SoulSync Premium",
+                      "Seeing everyone who liked you is coming soon!",
+                    )
+                  }
+                />
+              ))}
+              {Array.from({ length: emptyBoxes }, (_, i) => (
+                <View key={`empty-${i}`} style={styles.emptyBox} />
+              ))}
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>
@@ -141,6 +208,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   matchesHeading: {
+    marginTop: 28,
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
@@ -152,5 +220,34 @@ const styles = StyleSheet.create({
   admirerGrid: {
     flexDirection: "row",
     gap: 10,
+    paddingBottom: 24,
+  },
+  emptyBox: {
+    flex: 1,
+  },
+  inboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+  },
+  inboxText: {
+    flex: 1,
+  },
+  inboxName: {
+    color: colors.textOnDark,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  inboxPreview: {
+    color: colors.textOnDarkSecondary,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  inboxTime: {
+    color: colors.textOnDarkMuted,
+    fontSize: 11,
   },
 });

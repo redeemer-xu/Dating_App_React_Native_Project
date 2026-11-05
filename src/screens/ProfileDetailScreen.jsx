@@ -13,15 +13,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
-import { discoveryProfiles } from "../data/mockData";
+import { useMatches } from "../context/MatchesContext";
+import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 import { imageSource } from "../utils/imageSource";
 
 export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
-  const profile = discoveryProfiles.find((p) => p.id === id);
+  const { getProfile } = useProfiles();
+  const { isHidden } = useMatches();
+  const profile = getProfile(id);
 
-  if (!profile) {
+  if (!profile || isHidden(id)) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.missingText}>Profile not found.</Text>

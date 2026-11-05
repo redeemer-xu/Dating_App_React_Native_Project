@@ -8,52 +8,37 @@ import OnboardingHeader from "../components/OnboardingHeader";
 import PhotoGridSlot from "../components/PhotoGridSlot";
 import VerificationCard from "../components/VerificationCard";
 import { useOnboarding } from "../context/OnboardingContext";
-import { teamPhotoPool } from "../data/team";
 import { colors } from "../theme/colors";
+import { pickImageFromGallery } from "../utils/pickImage";
 
 export default function OnboardingStepTwo() {
   const { data, update } = useOnboarding();
   const [errors, setErrors] = useState({});
-  const [nextPhoto, setNextPhoto] = useState(0); // which team photo comes next
-
-  const photoCount = data.photos.filter(Boolean).length;
 
   const handleContinue = () => {
-    const nextErrors = {};
-
-    if (photoCount < 2) {
-      nextErrors.photos = "Please add at least 2 photos before continuing.";
+    if (!data.photo) {
+      setErrors({
+        photo: "Please upload a profile picture before continuing.",
+      });
+      return;
     }
-
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length > 0) return;
-
+    setErrors({});
     router.push("/onboarding/step-3");
   };
 
-  const handleAdd = (index) => {
-    // Mock "gallery": each tap adds the next team photo that is not in the grid yet.
-    // (Remove a photo with the X and tap + again to get a different one.)
-    let pickIndex = nextPhoto % teamPhotoPool.length;
-    for (let i = 0; i < teamPhotoPool.length; i++) {
-      const candidate = (nextPhoto + i) % teamPhotoPool.length;
-      if (!data.photos.includes(teamPhotoPool[candidate])) {
-        pickIndex = candidate;
-        break;
-      }
+  // Opens the phone's gallery. The picked photo becomes the profile picture.
+  const handlePick = async () => {
+    try {
+      const uri = await pickImageFromGallery();
+      if (!uri) return; // closed the gallery without picking
+      update({ photo: uri });
+      setErrors({});
+    } catch {
+      setErrors({ photo: "Could not open the gallery. Please try again." });
     }
-    const next = [...data.photos];
-    next[index] = teamPhotoPool[pickIndex];
-    update({ photos: next });
-    setNextPhoto(pickIndex + 1);
   };
 
-  const handleRemove = (index) => {
-    const next = [...data.photos];
-    next[index] = null;
-    update({ photos: next });
-  };
+  const handleRemove = () => update({ photo: null });
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -62,21 +47,26 @@ export default function OnboardingStepTwo() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.heading}>Show your best self</Text>
         <Text style={styles.subheading}>
-          Add at least 2 photos to continue.
+          Upload a profile picture from your gallery.
         </Text>
-        {errors.photos ? (
-          <Text style={styles.errorText}>{errors.photos}</Text>
+        {errors.photo ? (
+          <Text style={styles.errorText}>{errors.photo}</Text>
         ) : null}
 
-        <View style={styles.grid}>
-          {data.photos.map((uri, index) => (
-            <PhotoGridSlot
-              key={index}
-              uri={uri}
-              onAdd={() => handleAdd(index)}
-              onRemove={() => handleRemove(index)}
-            />
-          ))}
+        <View style={styles.photoBox}>
+          <PhotoGridSlot
+            uri={data.photo}
+            onAdd={handlePick}
+            onRemove={handleRemove}
+          />
+        </View>
+
+        <View style={styles.pickButton}>
+          <Button
+            title={data.photo ? "Change Photo" : "Choose from Gallery"}
+            variant="secondary"
+            onPress={handlePick}
+          />
         </View>
 
         <VerificationCard onPress={() => {}} />
@@ -109,10 +99,13 @@ const styles = StyleSheet.create({
     color: colors.textOnDarkSecondary,
     marginBottom: 20,
   },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+  photoBox: {
+    width: 200,
+    alignSelf: "center",
+    flexDirection: "row", // lets the photo box use its normal size
+    marginBottom: 16,
+  },
+  pickButton: {
     marginBottom: 24,
   },
   footer: {

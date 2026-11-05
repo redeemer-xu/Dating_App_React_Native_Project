@@ -14,8 +14,7 @@ import GradientBackground from "../components/GradientBackground";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useAuth } from "../context/AuthContext";
-import { useChat } from "../context/ChatContext";
-import { useMatches } from "../context/MatchesContext";
+import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 
 export default function MyProfileScreen() {
@@ -25,27 +24,31 @@ export default function MyProfileScreen() {
     logout,
   } = useAuth();
 
-  const { resetChats } = useChat();
-  const { resetMatches } = useMatches();
+  // my public profile (what others see in Discover)
+  const { getProfile } = useProfiles();
+  const myProfile = getProfile(user?.profileId);
 
   const name =
     user?.name ||
     savedOnboarding?.firstName ||
+    myProfile?.name ||
     user?.username ||
     "Your Profile";
   const avatarUri = user?.avatar || "https://i.pravatar.cc/300?img=32";
-  const bio = user?.bio || "No bio yet. Tap Edit Profile to add one.";
-  const tags = user?.interests ?? savedOnboarding?.interests ?? [];
+  const bio =
+    user?.bio || myProfile?.bio || "No bio yet. Tap Edit Profile to add one.";
+  const tags =
+    user?.interests ?? savedOnboarding?.interests ?? myProfile?.tags ?? [];
   const promptQuestion =
     user?.promptQuestion ?? savedOnboarding?.promptQuestion;
   const promptAnswer = user?.promptAnswer ?? savedOnboarding?.promptAnswer;
   const prompts = promptQuestion
     ? [{ question: promptQuestion, answer: promptAnswer }]
-    : [];
+    : (myProfile?.prompts ?? []);
 
+  // Messages and likes are NOT cleared, so the next person who logs in
+  // can still receive what you sent them.
   const handleSignOut = () => {
-    resetChats(); // clear this user's messages
-    resetMatches(); // clear this user's matches
     logout();
     router.replace("/");
   };

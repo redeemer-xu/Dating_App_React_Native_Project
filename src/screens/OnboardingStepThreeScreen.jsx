@@ -1,30 +1,33 @@
-import { router } from 'expo-router';
-import { Search } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from "expo-router";
+import { Search } from "lucide-react-native";
+import { useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import Button from '../components/Button';
-import OnboardingHeader from '../components/OnboardingHeader';
-import PromptPickerCard from '../components/PromptPickerCard';
-import SelectableChip from '../components/SelectableChip';
-import { useAuth } from '../context/AuthContext';
-import { useOnboarding } from '../context/OnboardingContext';
-import { interestOptions, promptQuestions } from '../data/mockData';
-import { colors } from '../theme/colors';
+import Button from "../components/Button";
+import OnboardingHeader from "../components/OnboardingHeader";
+import PromptPickerCard from "../components/PromptPickerCard";
+import SelectableChip from "../components/SelectableChip";
+import { useAuth } from "../context/AuthContext";
+import { useOnboarding } from "../context/OnboardingContext";
+import { useProfiles } from "../context/ProfilesContext";
+import { interestOptions, promptQuestions } from "../data/mockData";
+import { colors } from "../theme/colors";
+import { getAge, parseBirthday } from "../utils/validation";
 
 const MIN_INTERESTS = 3;
 
 export default function OnboardingStepThree() {
   const { data, update, reset } = useOnboarding();
-  const { markOnboardingComplete } = useAuth();
-  const [search, setSearch] = useState('');
+  const { currentUser, markOnboardingComplete } = useAuth();
+  const { saveProfile } = useProfiles();
+  const [search, setSearch] = useState("");
   const [errors, setErrors] = useState({});
 
   const filteredInterests = useMemo(() => {
     if (!search.trim()) return interestOptions;
     return interestOptions.filter((option) =>
-      option.toLowerCase().includes(search.trim().toLowerCase())
+      option.toLowerCase().includes(search.trim().toLowerCase()),
     );
   }, [search]);
 
@@ -45,11 +48,12 @@ export default function OnboardingStepThree() {
     }
 
     if (!data.promptQuestion) {
-      nextErrors.promptQuestion = 'Please choose a conversation prompt.';
+      nextErrors.promptQuestion = "Please choose a conversation prompt.";
     }
 
     if (!data.promptAnswer.trim()) {
-      nextErrors.promptAnswer = 'Please answer the selected prompt before continuing.';
+      nextErrors.promptAnswer =
+        "Please answer the selected prompt before continuing.";
     }
 
     setErrors(nextErrors);
@@ -57,21 +61,39 @@ export default function OnboardingStepThree() {
     if (Object.keys(nextErrors).length > 0) return;
 
     await markOnboardingComplete(data);
+    // Post the new user's profile, so other users can find them in Discover
+    const birthDate = parseBirthday(data.birthday);
+    saveProfile(currentUser.profileId, {
+      name: data.firstName.trim(),
+      age: birthDate ? getAge(birthDate) : 18,
+      avatar: data.photo,
+      images: [data.photo],
+      tags: data.interests,
+      prompts: [
+        { question: data.promptQuestion, answer: data.promptAnswer.trim() },
+      ],
+    });
     reset();
-    router.replace('/home');
+    router.replace("/home");
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <OnboardingHeader step={3} onBack={() => router.back()} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.heading}>What makes you, you?</Text>
 
         <Text style={styles.sectionLabel}>
-          Interests {data.interests.length > 0 && `(${data.interests.length} selected)`}
+          Interests{" "}
+          {data.interests.length > 0 && `(${data.interests.length} selected)`}
         </Text>
-        {errors.interests ? <Text style={styles.errorText}>{errors.interests}</Text> : null}
+        {errors.interests ? (
+          <Text style={styles.errorText}>{errors.interests}</Text>
+        ) : null}
 
         <View style={styles.searchBox}>
           <Search size={16} color={colors.textOnDarkMuted} />
@@ -95,7 +117,9 @@ export default function OnboardingStepThree() {
           ))}
         </View>
 
-        <Text style={[styles.sectionLabel, { marginTop: 28, marginBottom: 12 }]}>
+        <Text
+          style={[styles.sectionLabel, { marginTop: 28, marginBottom: 12 }]}
+        >
           Conversation Prompt
         </Text>
         {errors.promptQuestion || errors.promptAnswer ? (
@@ -135,19 +159,19 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.textOnDark,
     marginBottom: 20,
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textOnDarkSecondary,
     marginBottom: 12,
   },
   searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     height: 46,
     borderRadius: 14,
@@ -163,8 +187,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   chipGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   footer: {
@@ -175,7 +199,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.error,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 12,
   },
 });

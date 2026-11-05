@@ -7,12 +7,3 @@ export const teamPhotos = {
   shenaiah: require("../../assets/team/sabana.jpg"),
   tthrystan: require("../../assets/team/amomas.jpeg"),
 };
-
-// Used by the "+" boxes when a new user adds photos (onboarding step 2)
-export const teamPhotoPool = [
-  teamPhotos.redeemer,
-  teamPhotos.jastin,
-  teamPhotos.jennifer,
-  teamPhotos.shenaiah,
-  teamPhotos.tthrystan,
-];

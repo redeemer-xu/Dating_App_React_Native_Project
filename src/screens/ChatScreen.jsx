@@ -1,10 +1,19 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, MoreVertical, Send } from "lucide-react-native";
+import {
+  Ban,
+  ChevronLeft,
+  HeartOff,
+  MoreVertical,
+  Send,
+  User,
+} from "lucide-react-native";
 import { useState } from "react";
 import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
+  Modal,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -12,37 +21,28 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useChat } from "../context/ChatContext";
 
 import Avatar from "../components/Avatar";
 import MessageBubble from "../components/MessageBubble";
-import { chatThreads, discoveryProfiles, newSparks } from "../data/mockData";
+import { useAuth } from "../context/AuthContext";
+import { useChat } from "../context/ChatContext";
+import { useMatches } from "../context/MatchesContext";
+import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams();
-  const fallbackProfile =
-    discoveryProfiles.find((p) => p.id === id) ??
-    newSparks.find((spark) => spark.id === id);
-  const thread =
-    chatThreads[id] ??
-    (fallbackProfile
-      ? {
-          id: fallbackProfile.id,
-          name: fallbackProfile.name,
-          avatar: fallbackProfile.avatar ?? fallbackProfile.images?.[0],
-          online: true,
-          matchedOn: "TODAY",
-          messages: [],
-        }
-      : null);
-  const { chats, updateMessages } = useChat();
-  const starterMessages = thread?.messages ?? [];
-  const messages = chats[id] ?? starterMessages;
-  const setMessages = (updater) => updateMessages(id, starterMessages, updater);
+  const { id } = useLocalSearchParams(); // the other person's profile id
+  const { currentUser } = useAuth();
+  const { getProfile } = useProfiles();
+  const { getMessages, sendMessage, deleteMessage } = useChat();
+  const { matchIds, removeMatch, blockUser, isHidden } = useMatches();
   const [draft, setDraft] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  if (!thread) {
+  const me = currentUser?.profileId;
+  const other = getProfile(id);
+
+  if (!other || isHidden(id)) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.missingText}>Conversation not found.</Text>
@@ -50,23 +50,17 @@ export default function ChatScreen() {
     );
   }
 
+  // Saved messages have a senderId. The bubble needs "me" or "them".
+  const messages = getMessages(me, id).map((m) => ({
+    ...m,
+    from: m.senderId === me ? "me" : "them",
+  }));
+  const isMatch = matchIds.includes(id);
+
   const handleSend = () => {
     if (!draft.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `local-${Date.now()}`,
-        from: "me",
-        text: draft.trim(),
-        time: "Now",
-        read: false,
-      },
-    ]);
+    sendMessage(me, id, draft.trim()); // the other person will see it too
     setDraft("");
-  };
-
-  const deleteMessage = (id) => {
-    setMessages((prev) => prev.filter((m) => m.id !== id));
   };
 
   const confirmDelete = (message) => {
@@ -77,9 +71,64 @@ export default function ChatScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => deleteMessage(message.id),
+        onPress: () => deleteMessage(me, id, message.id),
       },
     ]);
+  };
+
+  // ---- the ⋮ menu ----
+  const handleViewProfile = () => {
+    setMenuOpen(false);
+    router.push(`/profile/${id}`);
+  };
+
+  const handleUnmatch = () => {
+    setMenuOpen(false);
+    Alert.alert(
+      `Unmatch with ${other.name}?`,
+      "They will be removed from your matches.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unmatch",
+          style: "destructive",
+          onPress: () => {
+            removeMatch(id);
+            router.back();
+          },
+        },
+      ],
+    );
+  };
+
+  const handleBlockReport = () => {
+    setMenuOpen(false);
+    Alert.alert(
+      `Block or report ${other.name}?`,
+      "You won't see each other in Discover, Matches or Messages anymore.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          onPress: () => {
+            blockUser(id);
+            Alert.alert(
+              "Thanks for reporting",
+              "We blocked this user for you.",
+            );
+            router.back();
+          },
+        },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: () => {
+            blockUser(id);
+            router.back();
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -89,22 +138,63 @@ export default function ChatScreen() {
           <ChevronLeft size={26} color={colors.textOnDark} />
         </TouchableOpacity>
 
-        <View style={styles.headerCenter}>
-          <Avatar uri={thread.avatar} size={36} online={thread.online} />
+        <TouchableOpacity
+          style={styles.headerCenter}
+          onPress={handleViewProfile}
+        >
+          <Avatar uri={other.avatar} size={36} />
           <View style={styles.headerTextGroup}>
-            <Text style={styles.headerName}>{thread.name}</Text>
-            {thread.online && (
-              <View style={styles.onlineRow}>
-                <Text style={styles.onlineLabel}>ONLINE NOW</Text>
-              </View>
-            )}
+            <Text style={styles.headerName}>{other.name}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        <TouchableOpacity hitSlop={12}>
+        <TouchableOpacity hitSlop={12} onPress={() => setMenuOpen(true)}>
           <MoreVertical size={22} color={colors.textOnDarkSecondary} />
         </TouchableOpacity>
       </View>
+
+      {/* The ⋮ menu. Tap outside it to close. */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <Pressable
+          style={styles.menuBackdrop}
+          onPress={() => setMenuOpen(false)}
+        >
+          <SafeAreaView edges={["top"]}>
+            <View style={styles.menu}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleViewProfile}
+              >
+                <User size={18} color={colors.textOnDark} />
+                <Text style={styles.menuText}>View profile</Text>
+              </TouchableOpacity>
+              {isMatch ? (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={handleUnmatch}
+                >
+                  <HeartOff size={18} color={colors.textOnDark} />
+                  <Text style={styles.menuText}>Unmatch</Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleBlockReport}
+              >
+                <Ban size={18} color={colors.error} />
+                <Text style={[styles.menuText, { color: colors.error }]}>
+                  Block / Report
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Pressable>
+      </Modal>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -118,9 +208,16 @@ export default function ChatScreen() {
           ListHeaderComponent={
             <View style={styles.dateSeparator}>
               <Text style={styles.dateSeparatorText}>
-                {thread.matchedOn} · You matched with {thread.name}
+                {isMatch
+                  ? `You matched with ${other.name}`
+                  : `Say hi to ${other.name}`}
               </Text>
             </View>
+          }
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              No messages yet. Send the first one!
+            </Text>
           }
           renderItem={({ item }) => (
             <MessageBubble
@@ -184,18 +281,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.textOnDark,
   },
-  onlineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    marginTop: 2,
-  },
-  onlineLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.4,
-    color: colors.online,
-  },
   messageList: {
     padding: 16,
     paddingBottom: 8,
@@ -213,6 +298,36 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.textOnDarkMuted,
     letterSpacing: 0.3,
+  },
+  emptyText: {
+    color: colors.textOnDarkMuted,
+    textAlign: "center",
+    fontSize: 13,
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  menu: {
+    alignSelf: "flex-end",
+    marginTop: 8,
+    marginRight: 12,
+    minWidth: 190,
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    paddingVertical: 6,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  menuText: {
+    color: colors.textOnDark,
+    fontSize: 15,
+    fontWeight: "600",
   },
   composerRow: {
     flexDirection: "row",
