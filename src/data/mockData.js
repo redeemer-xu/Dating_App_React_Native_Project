@@ -1,3 +1,5 @@
+import { teamPhotos } from "./team";
+
 export const defaultDiscoveryFilters = {
   distance: 25,
   ageRange: [22, 32],
@@ -5,125 +7,126 @@ export const defaultDiscoveryFilters = {
   verifiedOnly: false,
 };
 
+// Our group mates are the mock users.
+// Edit age, title, bio, tags and prompts here whenever you want.
 export const discoveryProfiles = [
   {
-    id: "maya",
-    name: "Maya",
-    age: 26,
-    title: "Interior Designer",
-    location: "London, UK",
-    distance: "3 miles away",
-    avatar: "https://i.pravatar.cc/150?img=32",
-    bio: "Turning empty rooms into stories. Always chasing golden hour and good coffee. Let's argue about mid-century furniture.",
-    images: ["https://i.pravatar.cc/600?img=32"],
-    tags: ["Vintage Hunting", "Architecture", "Late Night", "Coffee Snob"],
+    id: "redeemer",
+    name: "Redeemer",
+    age: 22,
+    title: "BSIT Student",
+    location: "Cagayan de Oro, PH",
+    distance: "1 mile away",
+    avatar: teamPhotos.redeemer,
+    bio: "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
+    images: [teamPhotos.redeemer],
+    tags: ["Coding", "Coffee", "Gaming"],
     prompts: [
       {
         question: "A perfect Sunday looks like",
-        answer:
-          "Flea market run, then getting lost restoring a chair I definitely did not need.",
+        answer: "Zero errors in the terminal and a very long nap.",
       },
       {
-        question: "I'll know it's a match when",
-        answer: "You have strong opinions about lighting.",
+        question: "Together we could",
+        answer: "Finally finish the project before the deadline.",
       },
     ],
   },
   {
-    id: "leo",
-    name: "Leo",
-    age: 29,
-    title: "Software Engineer",
-    location: "London, UK",
-    distance: "5 miles away",
-    avatar: "https://i.pravatar.cc/150?img=12",
-    bio: "Building things by day, climbing things by weekend. Looking for a partner in crime for terrible puns.",
-    images: ["https://i.pravatar.cc/600?img=12"],
-    tags: ["Bouldering", "Board Games", "Terrible Puns"],
+    id: "jastin",
+    name: "Jastin",
+    age: 23,
+    title: "BSIT Student",
+    location: "Cagayan de Oro, PH",
+    distance: "2 miles away",
+    avatar: teamPhotos.jastin,
+    bio: "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
+    images: [teamPhotos.jastin],
+    tags: ["Tech", "Music", "Late Night"],
     prompts: [
       {
         question: "My most controversial opinion",
-        answer: "Pineapple belongs on pizza, fight me.",
+        answer: "Tabs are better than spaces, fight me.",
       },
-      {
-        question: "Together we could",
-        answer: "Finally beat that escape room that beat us twice.",
-      },
-    ],
-  },
-  {
-    id: "jules",
-    name: "Jules",
-    age: 24,
-    title: "Photographer",
-    location: "London, UK",
-    distance: "1 mile away",
-    avatar: "https://i.pravatar.cc/150?img=25",
-    bio: "I see the world in frames. Currently obsessed with film photography and oat milk lattes.",
-    images: ["https://i.pravatar.cc/600?img=25"],
-    tags: ["Film Photography", "Indie Music", "Thrifting"],
-    prompts: [
       {
         question: "Green flag I look for",
-        answer: "You get excited about small things.",
-      },
-      { question: "Unpopular opinion", answer: "Digital photos have no soul." },
-    ],
-  },
-  {
-    id: "noah",
-    name: "Noah",
-    age: 27,
-    title: "Chef",
-    location: "London, UK",
-    distance: "4 miles away",
-    avatar: "https://i.pravatar.cc/150?img=14",
-    bio: "I cook like my grandma is watching. Will trade homemade pasta for good conversation.",
-    images: ["https://i.pravatar.cc/600?img=14"],
-    tags: ["Cooking", "Food Markets", "Jazz", "Cycling"],
-    prompts: [
-      {
-        question: "The best way to win me over is",
-        answer:
-          "Eat the last bite and tell me it was the best thing you've had all week.",
-      },
-      {
-        question: "Together we could",
-        answer: "Open a tiny pop-up restaurant for exactly one night.",
+        answer: "You reply to the group chat on time.",
       },
     ],
   },
   {
-    id: "ivy",
-    name: "Ivy",
-    age: 25,
-    title: "Graphic Designer",
-    location: "London, UK",
-    distance: "2 miles away",
-    avatar: "https://i.pravatar.cc/150?img=47",
-    bio: "Professional font snob and amateur plant mom. My Spotify Wrapped is embarrassing and I'm proud of it.",
-    images: ["https://i.pravatar.cc/600?img=47"],
-    tags: ["Design", "Plants", "Concerts", "Art Galleries"],
+    id: "jennifer",
+    name: "Jennifer",
+    age: 22,
+    title: "BSIT Student",
+    location: "Cagayan de Oro, PH",
+    distance: "3 miles away",
+    avatar: teamPhotos.jennifer,
+    bio: "Professional deadline survivor. Will trade my notes for good conversation.",
+    images: [teamPhotos.jennifer],
+    tags: ["Design", "Movies", "Coffee"],
     prompts: [
       {
-        question: "Green flag I look for",
-        answer: "You notice the little details, like when I change my hair.",
+        question: "I'll know it's a match when",
+        answer: "You also say 'five more minutes' and mean it.",
       },
       {
         question: "One thing I can never live without is",
-        answer: "A sketchbook and way too many pens.",
+        answer: "A charged phone and a working charger.",
+      },
+    ],
+  },
+  {
+    id: "shenaiah",
+    name: "Shenaiah",
+    age: 24,
+    title: "BSIT Student",
+    location: "Cagayan de Oro, PH",
+    distance: "4 miles away",
+    avatar: teamPhotos.shenaiah,
+    bio: "Here for the good vibes and the group projects that somehow work out.",
+    images: [teamPhotos.shenaiah],
+    tags: ["Travel", "Photography", "Music"],
+    prompts: [
+      {
+        question: "The best way to win me over is",
+        answer: "Bring snacks to our group meeting.",
+      },
+      {
+        question: "Unpopular opinion",
+        answer: "Group projects are secretly fun.",
+      },
+    ],
+  },
+  {
+    id: "tthrystan",
+    name: "Tthrystan",
+    age: 23,
+    title: "BSIT Student",
+    location: "Cagayan de Oro, PH",
+    distance: "5 miles away",
+    avatar: teamPhotos.tthrystan,
+    bio: "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
+    images: [teamPhotos.tthrystan],
+    tags: ["Gaming", "Tech", "Fitness"],
+    prompts: [
+      {
+        question: "Together we could",
+        answer: "Win the group project and the late-night game.",
+      },
+      {
+        question: "A perfect Sunday looks like",
+        answer: "No deadlines, no alarms, only rest.",
       },
     ],
   },
 ];
 
-export const newSparks = [
-  { id: "leo", name: "Leo", avatar: "https://i.pravatar.cc/150?img=12" },
-  { id: "maya", name: "Maya", avatar: "https://i.pravatar.cc/150?img=32" },
-  { id: "jules", name: "Jules", avatar: "https://i.pravatar.cc/150?img=25" },
-  { id: "noah", name: "Noah", avatar: "https://i.pravatar.cc/150?img=14" },
-  { id: "ivy", name: "Ivy", avatar: "https://i.pravatar.cc/150?img=47" },
-];
+export const newSparks = discoveryProfiles.map((p) => ({
+  id: p.id,
+  name: p.name,
+  avatar: p.avatar,
+}));
 
 export const secretAdmirers = [
   { id: "a1", avatar: "https://i.pravatar.cc/300?img=5", locked: true },
@@ -138,44 +141,43 @@ export const secretAdmirers = [
 ];
 
 export const chatThreads = {
-  maya: {
-    id: "maya",
-    name: "Maya",
-    avatar: "https://i.pravatar.cc/150?img=32",
+  jennifer: {
+    id: "jennifer",
+    name: "Jennifer",
+    avatar: teamPhotos.jennifer,
     online: true,
     matchedOn: "TODAY",
     messages: [
       {
         id: "m1",
         from: "them",
-        text: "Hey! Loved your record collection in the photos 🎧",
+        text: "Hey! Did you finish your part of the IT313 project? 😅",
         time: "10:02 AM",
       },
       {
         id: "m2",
         from: "me",
-        text: "Ha, thank you! It might be a slight problem at this point",
+        text: "Almost! Just fixing one last bug",
         time: "10:05 AM",
         read: true,
       },
       {
         id: "m3",
         from: "them",
-        text: "No such thing as too many records. What's the last one you picked up?",
+        text: "Classic. What was the bug this time?",
         time: "10:06 AM",
       },
       {
         id: "m4",
         from: "me",
-        text: "This one, found it at a tiny shop near Brick Lane",
+        text: "A missing question mark. Always a question mark.",
         time: "10:10 AM",
         read: true,
-        image: "https://picsum.photos/seed/vinyl/500/500",
       },
       {
         id: "m5",
         from: "them",
-        text: "Okay that shop has amazing taste. We need to go together sometime",
+        text: "Haha okay, send it when it works. We can test it together",
         time: "10:12 AM",
       },
     ],

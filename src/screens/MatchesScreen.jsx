@@ -11,16 +11,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import GradientBackground from "../components/GradientBackground";
 import SecretAdmirerCard from "../components/SecretAdmirerCard";
+import { useAuth } from "../context/AuthContext";
 import { useMatches } from "../context/MatchesContext";
 import { discoveryProfiles, secretAdmirers } from "../data/mockData";
 import { colors } from "../theme/colors";
 
 export default function MatchesScreen() {
   const { matchIds, removeMatch } = useMatches();
+  const { currentUser } = useAuth();
   // turn the saved ids into full profiles (name, avatar...)
   const sparks = matchIds
     .map((id) => discoveryProfiles.find((p) => p.id === id))
-    .filter(Boolean);
+    .filter((p) => p && p.id !== currentUser?.username); // never show yourself
 
   const confirmUnmatch = (spark) => {
     Alert.alert(

@@ -1,9 +1,14 @@
-import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { Image } from "expo-image";
+import { StyleSheet, View } from "react-native";
+import { colors } from "../theme/colors";
+import { imageSource } from "../utils/imageSource";
 
-
-export default function Avatar({ uri, size = 48, ringed = false, online = false }) {
+export default function Avatar({
+  uri,
+  size = 48,
+  ringed = false,
+  online = false,
+}) {
   const dimension = ringed ? size + 6 : size;
 
   return (
@@ -12,13 +17,20 @@ export default function Avatar({ uri, size = 48, ringed = false, online = false 
         <View
           style={[
             styles.ring,
-            { width: dimension, height: dimension, borderRadius: dimension / 2 },
+            {
+              width: dimension,
+              height: dimension,
+              borderRadius: dimension / 2,
+            },
           ]}
         />
       )}
       <Image
-        source={{ uri }}
-        style={[styles.image, { width: size, height: size, borderRadius: size / 2 }]}
+        source={imageSource(uri)}
+        style={[
+          styles.image,
+          { width: size, height: size, borderRadius: size / 2 },
+        ]}
         contentFit="cover"
         transition={150}
       />
@@ -42,11 +54,11 @@ export default function Avatar({ uri, size = 48, ringed = false, online = false 
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   ring: {
-    position: 'absolute',
+    position: "absolute",
     borderWidth: 2,
     borderColor: colors.accent,
   },
@@ -54,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardAlt,
   },
   onlineDot: {
-    position: 'absolute',
+    position: "absolute",
     backgroundColor: colors.online,
     borderWidth: 2,
     borderColor: colors.background,

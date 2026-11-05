@@ -30,6 +30,7 @@ export default function HomeScreen() {
   const [matchedUser, setMatchedUser] = useState(null);
   // 1) people who fit the filters
   const matchingFilters = discoveryProfiles.filter((p) => {
+    if (p.id === user?.username) return false;
     const miles = parseInt(p.distance, 10); // "3 miles away" -> 3
     const [minAge, maxAge] = filters.ageRange;
     return p.age >= minAge && p.age <= maxAge && miles <= filters.distance;

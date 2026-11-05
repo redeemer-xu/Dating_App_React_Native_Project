@@ -15,6 +15,7 @@ import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { discoveryProfiles } from "../data/mockData";
 import { colors } from "../theme/colors";
+import { imageSource } from "../utils/imageSource";
 
 export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -36,7 +37,7 @@ export default function ProfileDetailScreen() {
       >
         <View style={styles.hero}>
           <Image
-            source={{ uri: profile.images[0] }}
+            source={imageSource(profile.images[0])}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
           />
