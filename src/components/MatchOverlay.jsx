@@ -9,6 +9,7 @@ export default function MatchOverlay({
   onClose,
   matchedUser,
   currentUserAvatar,
+  currentUserName,
   onSendMessage,
 }) {
   if (!matchedUser) return null;
@@ -50,10 +51,20 @@ export default function MatchOverlay({
 
           <View style={styles.avatarRow}>
             <View style={[styles.avatarWrap, styles.avatarLeft]}>
-              <Avatar uri={currentUserAvatar} size={96} ringed />
+              <Avatar
+                uri={currentUserAvatar}
+                name={currentUserName}
+                size={96}
+                ringed
+              />
             </View>
             <View style={[styles.avatarWrap, styles.avatarRight]}>
-              <Avatar uri={matchedUser.avatar} size={96} ringed />
+              <Avatar
+                uri={matchedUser.avatar}
+                name={matchedUser.name}
+                size={96}
+                ringed
+              />
             </View>
           </View>
 

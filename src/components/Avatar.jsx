@@ -1,15 +1,19 @@
 import { Image } from "expo-image";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme/colors";
 import { imageSource } from "../utils/imageSource";
+import { colorForName, getInitial } from "../utils/initials";
 
+// uri = the photo. If there is no photo, the first letter of "name" is shown.
 export default function Avatar({
   uri,
+  name,
   size = 48,
   ringed = false,
   online = false,
 }) {
   const dimension = ringed ? size + 6 : size;
+  const circle = { width: size, height: size, borderRadius: size / 2 };
 
   return (
     <View style={[styles.wrapper, { width: dimension, height: dimension }]}>
@@ -25,15 +29,26 @@ export default function Avatar({
           ]}
         />
       )}
-      <Image
-        source={imageSource(uri)}
-        style={[
-          styles.image,
-          { width: size, height: size, borderRadius: size / 2 },
-        ]}
-        contentFit="cover"
-        transition={150}
-      />
+      {uri ? (
+        <Image
+          source={imageSource(uri)}
+          style={[styles.image, circle]}
+          contentFit="cover"
+          transition={150}
+        />
+      ) : (
+        <View
+          style={[
+            styles.initialCircle,
+            circle,
+            { backgroundColor: colorForName(name) },
+          ]}
+        >
+          <Text style={[styles.initialText, { fontSize: size * 0.42 }]}>
+            {getInitial(name)}
+          </Text>
+        </View>
+      )}
       {online && (
         <View
           style={[
@@ -64,6 +79,14 @@ const styles = StyleSheet.create({
   },
   image: {
     backgroundColor: colors.cardAlt,
+  },
+  initialCircle: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  initialText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
   },
   onlineDot: {
     position: "absolute",

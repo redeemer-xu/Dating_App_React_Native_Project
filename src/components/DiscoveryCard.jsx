@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../theme/colors";
 import { imageSource } from "../utils/imageSource";
+import { colorForName, getInitial } from "../utils/initials";
 
 export default function DiscoveryCard({ profile, onPress }) {
   return (
@@ -12,12 +13,24 @@ export default function DiscoveryCard({ profile, onPress }) {
       onPress={onPress}
       disabled={!onPress}
     >
-      <Image
-        source={imageSource(profile.images[0])}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        transition={200}
-      />
+      {profile.images[0] ? (
+        <Image
+          source={imageSource(profile.images[0])}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          transition={200}
+        />
+      ) : (
+        // no photo: big first letter on a colored background
+        <View
+          style={[
+            styles.noPhoto,
+            { backgroundColor: colorForName(profile.name) },
+          ]}
+        >
+          <Text style={styles.noPhotoLetter}>{getInitial(profile.name)}</Text>
+        </View>
+      )}
       <LinearGradient
         colors={["transparent", "rgba(15,15,17,0.55)", "rgba(15,15,17,0.95)"]}
         locations={[0, 0.55, 1]}
@@ -43,6 +56,17 @@ export default function DiscoveryCard({ profile, onPress }) {
 }
 
 const styles = StyleSheet.create({
+  noPhoto: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 120,
+  },
+  noPhotoLetter: {
+    color: "#FFFFFF",
+    fontSize: 140,
+    fontWeight: "800",
+  },
   card: {
     flex: 1,
     borderRadius: 28,

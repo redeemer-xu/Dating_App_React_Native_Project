@@ -1,21 +1,14 @@
 import { router } from "expo-router";
-import {
-  Flame,
-  Heart,
-  MessageCircle,
-  SlidersHorizontal,
-  X,
-} from "lucide-react-native";
+import { Flame, SlidersHorizontal } from "lucide-react-native";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ActionButton from "../components/ActionButton";
 import Button from "../components/Button";
-import DiscoveryCard from "../components/DiscoveryCard";
 import DiscoverySettingsModal from "../components/DiscoverySettingsModal";
 import GradientBackground from "../components/GradientBackground";
 import MatchOverlay from "../components/MatchOverlay";
 import ScreenHeader from "../components/ScreenHeader";
+import SwipeDeck from "../components/SwipeDeck";
 import { useAuth } from "../context/AuthContext";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
@@ -64,7 +57,10 @@ export default function HomeScreen() {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <ScreenHeader avatarUri={user?.avatar} />
+        <ScreenHeader
+          avatarUri={user?.avatar}
+          name={user?.name || user?.username}
+        />
 
         <View style={styles.headingRow}>
           <View style={styles.heading}>
@@ -82,33 +78,15 @@ export default function HomeScreen() {
         </View>
 
         {profile ? (
-          <>
-            <View style={styles.cardContainer}>
-              <DiscoveryCard
-                profile={profile}
-                onPress={() => router.push(`/profile/${profile.id}`)}
-              />
-            </View>
-
-            <View style={styles.actions}>
-              <ActionButton variant="pass" onPress={handlePass}>
-                <X size={24} color={colors.textOnDarkSecondary} />
-              </ActionButton>
-              <ActionButton variant="like" size={64} onPress={handleLike}>
-                <Heart
-                  size={28}
-                  color={colors.textOnDark}
-                  fill={colors.textOnDark}
-                />
-              </ActionButton>
-              <ActionButton
-                variant="chat"
-                onPress={() => router.push(`/chat/${profile.id}`)}
-              >
-                <MessageCircle size={23} color={colors.textOnDarkSecondary} />
-              </ActionButton>
-            </View>
-          </>
+          // key = a fresh card for every profile
+          <SwipeDeck
+            key={profile.id}
+            profile={profile}
+            onPass={handlePass}
+            onLike={handleLike}
+            onOpenProfile={() => router.push(`/profile/${profile.id}`)}
+            onChat={() => router.push(`/chat/${profile.id}`)}
+          />
         ) : (
           <View style={styles.emptyState}>
             {matchingFilters.length > 0 ? (
@@ -159,6 +137,7 @@ export default function HomeScreen() {
           onClose={() => setMatchedUser(null)}
           matchedUser={matchedUser}
           currentUserAvatar={user?.avatar}
+          currentUserName={user?.name || user?.username}
         />
       </SafeAreaView>
     </GradientBackground>
@@ -223,17 +202,6 @@ const styles = StyleSheet.create({
     color: colors.textOnDark,
     fontSize: 28,
     fontWeight: "800",
-  },
-  cardContainer: {
-    flex: 1,
-    minHeight: 360,
-  },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 22,
-    paddingVertical: 18,
   },
   statusRow: {
     flexDirection: "row",

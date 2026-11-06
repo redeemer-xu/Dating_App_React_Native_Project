@@ -1,9 +1,9 @@
-import { router } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
-import Avatar from './Avatar';
+import { router } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { colors } from "../theme/colors";
+import Avatar from "./Avatar";
 
-export default function ScreenHeader({ avatarUri, onAvatarPress }) {
+export default function ScreenHeader({ avatarUri, name, onAvatarPress }) {
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>SoulSync</Text>
@@ -11,7 +11,7 @@ export default function ScreenHeader({ avatarUri, onAvatarPress }) {
         activeOpacity={0.8}
         onPress={onAvatarPress ?? (() => router.push(`/profile/me`))}
       >
-        <Avatar uri={avatarUri} size={40} />
+        <Avatar uri={avatarUri} name={name} size={40} />
       </TouchableOpacity>
     </View>
   );
@@ -19,16 +19,16 @@ export default function ScreenHeader({ avatarUri, onAvatarPress }) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 16,
   },
   logo: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: colors.textOnDark,
     letterSpacing: 0.2,
   },

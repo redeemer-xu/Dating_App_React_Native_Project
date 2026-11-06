@@ -17,6 +17,7 @@ import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 import { imageSource } from "../utils/imageSource";
+import { colorForName, getInitial } from "../utils/initials";
 
 export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -39,11 +40,25 @@ export default function ProfileDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <Image
-            source={imageSource(profile.images[0])}
-            style={StyleSheet.absoluteFill}
-            contentFit="cover"
-          />
+          {profile.images[0] ? (
+            <Image
+              source={imageSource(profile.images[0])}
+              style={StyleSheet.absoluteFill}
+              contentFit="cover"
+            />
+          ) : (
+            // no photo: big first letter on a colored background
+            <View
+              style={[
+                styles.noPhoto,
+                { backgroundColor: colorForName(profile.name) },
+              ]}
+            >
+              <Text style={styles.noPhotoLetter}>
+                {getInitial(profile.name)}
+              </Text>
+            </View>
+          )}
           <LinearGradient
             colors={["rgba(15,15,17,0.1)", "transparent"]}
             style={styles.heroTopFade}
@@ -124,6 +139,17 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
+  },
+  noPhoto: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 60,
+  },
+  noPhotoLetter: {
+    color: "#FFFFFF",
+    fontSize: 160,
+    fontWeight: "800",
   },
   hero: {
     height: 460,
