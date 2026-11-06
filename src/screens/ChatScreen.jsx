@@ -142,7 +142,7 @@ export default function ChatScreen() {
           style={styles.headerCenter}
           onPress={handleViewProfile}
         >
-          <Avatar uri={other.avatar} size={36} />
+          <Avatar uri={other.avatar} name={other.name} size={36} />
           <View style={styles.headerTextGroup}>
             <Text style={styles.headerName}>{other.name}</Text>
           </View>

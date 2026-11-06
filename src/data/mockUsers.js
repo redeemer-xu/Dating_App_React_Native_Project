@@ -1,7 +1,5 @@
 import { teamPhotos } from "./team";
 
-const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=68";
-
 // Our group mates can log in with these accounts.
 export const mockUsers = [
   {
@@ -75,7 +73,7 @@ export function addUser(username, email, password) {
     profileId: `user-${mockUsers.length + 1}`, // their card in Discover (made after onboarding)
     email: email.trim().toLowerCase(),
     password,
-    avatar: DEFAULT_AVATAR,
+    avatar: null,
   };
   mockUsers.push(newUser);
   return newUser;

@@ -23,10 +23,6 @@ export const discoveryProfiles = [
     tags: ["Coding", "Coffee", "Gaming"],
     prompts: [
       {
-        question: "A perfect Sunday looks like",
-        answer: "Zero errors in the terminal and a very long nap.",
-      },
-      {
         question: "Together we could",
         answer: "Finally finish the project before the deadline.",
       },
@@ -44,10 +40,6 @@ export const discoveryProfiles = [
     images: [teamPhotos.jastin],
     tags: ["Tech", "Music", "Late Night"],
     prompts: [
-      {
-        question: "My most controversial opinion",
-        answer: "Tabs are better than spaces, fight me.",
-      },
       {
         question: "Green flag I look for",
         answer: "You reply to the group chat on time.",
@@ -67,10 +59,6 @@ export const discoveryProfiles = [
     tags: ["Design", "Movies", "Coffee"],
     prompts: [
       {
-        question: "I'll know it's a match when",
-        answer: "You also say 'five more minutes' and mean it.",
-      },
-      {
         question: "One thing I can never live without is",
         answer: "A charged phone and a working charger.",
       },
@@ -89,10 +77,6 @@ export const discoveryProfiles = [
     tags: ["Travel", "Photography", "Music"],
     prompts: [
       {
-        question: "The best way to win me over is",
-        answer: "Bring snacks to our group meeting.",
-      },
-      {
         question: "Unpopular opinion",
         answer: "Group projects are secretly fun.",
       },
@@ -110,10 +94,6 @@ export const discoveryProfiles = [
     images: [teamPhotos.tthrystan],
     tags: ["Gaming", "Tech", "Fitness"],
     prompts: [
-      {
-        question: "Together we could",
-        answer: "Win the group project and the late-night game.",
-      },
       {
         question: "A perfect Sunday looks like",
         answer: "No deadlines, no alarms, only rest.",

@@ -15,13 +15,8 @@ export default function OnboardingStepTwo() {
   const { data, update } = useOnboarding();
   const [errors, setErrors] = useState({});
 
+  // The photo is optional. No photo = the first letter of your name is shown.
   const handleContinue = () => {
-    if (!data.photo) {
-      setErrors({
-        photo: "Please upload a profile picture before continuing.",
-      });
-      return;
-    }
     setErrors({});
     router.push("/onboarding/step-3");
   };
@@ -47,7 +42,8 @@ export default function OnboardingStepTwo() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.heading}>Show your best self</Text>
         <Text style={styles.subheading}>
-          Upload a profile picture from your gallery.
+          Upload a profile picture from your gallery. It&apos;s optional: skip
+          it and we&apos;ll show the first letter of your name.
         </Text>
         {errors.photo ? (
           <Text style={styles.errorText}>{errors.photo}</Text>
@@ -73,7 +69,11 @@ export default function OnboardingStepTwo() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title="Continue" variant="accent" onPress={handleContinue} />
+        <Button
+          title={data.photo ? "Continue" : "Skip for now"}
+          variant="accent"
+          onPress={handleContinue}
+        />
       </View>
     </SafeAreaView>
   );

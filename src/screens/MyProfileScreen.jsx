@@ -34,7 +34,7 @@ export default function MyProfileScreen() {
     myProfile?.name ||
     user?.username ||
     "Your Profile";
-  const avatarUri = user?.avatar || "https://i.pravatar.cc/300?img=32";
+  const avatarUri = user?.avatar; // no photo = first letter of the name
   const bio =
     user?.bio || myProfile?.bio || "No bio yet. Tap Edit Profile to add one.";
   const tags =
@@ -74,7 +74,7 @@ export default function MyProfileScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.profileHeader}>
-            <Avatar uri={avatarUri} size={96} />
+            <Avatar uri={avatarUri} name={name} size={96} />
             <Text style={styles.name}>{name}</Text>
             <View style={styles.editButton}>
               <Button

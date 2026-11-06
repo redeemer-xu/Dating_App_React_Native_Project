@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import GradientBackground from "../components/GradientBackground";
-import SecretAdmirerCard from "../components/SecretAdmirerCard";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useMatches } from "../context/MatchesContext";
@@ -34,23 +33,8 @@ export default function MatchesScreen() {
     .map((item) => ({ ...item, profile: getProfile(item.otherId) }))
     .filter((item) => item.profile && !isHidden(item.otherId));
 
-  // people who liked me: show up to 3 blurred photos + the "Unlock All" box
-  const admirers = admirerIds.map((id) => getProfile(id)).filter(Boolean);
-  const admirerCards = admirers.slice(0, 3).map((p) => ({
-    id: p.id,
-    avatar: p.avatar,
-    locked: true,
-  }));
-  if (admirers.length > 0) {
-    admirerCards.push({
-      id: "unlock-all",
-      avatar: admirers[admirers.length - 1].avatar,
-      locked: true,
-      isUnlockAll: true,
-    });
-  }
-  // empty boxes keep the 4 columns the same size
-  const emptyBoxes = admirerCards.length > 0 ? 4 - admirerCards.length : 0;
+  // people who liked me (and I have not liked back yet), shown clearly
+  const likedYou = admirerIds.map((id) => getProfile(id)).filter(Boolean);
 
   const confirmUnmatch = (spark) => {
     Alert.alert(
@@ -95,7 +79,7 @@ export default function MatchesScreen() {
                 onPress={() => router.push(`/chat/${spark.id}`)}
                 onLongPress={() => confirmUnmatch(spark)}
               >
-                <Avatar uri={spark.avatar} size={62} ringed />
+                <Avatar uri={spark.avatar} name={spark.name} size={62} ringed />
                 <Text style={styles.sparkName}>{spark.name}</Text>
               </TouchableOpacity>
             ))}
@@ -113,7 +97,7 @@ export default function MatchesScreen() {
               style={styles.inboxRow}
               onPress={() => router.push(`/chat/${otherId}`)}
             >
-              <Avatar uri={profile.avatar} size={52} />
+              <Avatar uri={profile.avatar} name={profile.name} size={52} />
               <View style={styles.inboxText}>
                 <Text style={styles.inboxName}>{profile.name}</Text>
                 <Text style={styles.inboxPreview} numberOfLines={1}>
@@ -126,37 +110,35 @@ export default function MatchesScreen() {
           ))}
 
           <View style={styles.matchesHeading}>
-            <Text style={styles.sectionTitle}>Secret admirers</Text>
+            <Text style={styles.sectionTitle}>Liked you</Text>
             <Text style={styles.caption}>
-              {admirers.length === 0
+              {likedYou.length === 0
                 ? ""
-                : admirers.length === 1
+                : likedYou.length === 1
                   ? "1 person likes you"
-                  : `${admirers.length} people like you`}
+                  : `${likedYou.length} people like you`}
             </Text>
           </View>
-          {admirers.length === 0 ? (
+          {likedYou.length === 0 ? (
             <Text style={styles.emptyText}>
-              No secret admirers yet. Keep your profile awesome!
+              No one yet. Keep your profile awesome!
             </Text>
           ) : (
-            <View style={styles.admirerGrid}>
-              {admirerCards.map((admirer) => (
-                <SecretAdmirerCard
-                  key={admirer.id}
-                  admirer={admirer}
-                  onUnlockAll={() =>
-                    Alert.alert(
-                      "SoulSync Premium",
-                      "Seeing everyone who liked you is coming soon!",
-                    )
-                  }
-                />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.sparkRow}
+            >
+              {likedYou.map((person) => (
+                <TouchableOpacity
+                  key={person.id}
+                  onPress={() => router.push(`/profile/${person.id}`)}
+                >
+                  <Avatar uri={person.avatar} name={person.name} size={62} />
+                  <Text style={styles.sparkName}>{person.name}</Text>
+                </TouchableOpacity>
               ))}
-              {Array.from({ length: emptyBoxes }, (_, i) => (
-                <View key={`empty-${i}`} style={styles.emptyBox} />
-              ))}
-            </View>
+            </ScrollView>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -216,14 +198,6 @@ const styles = StyleSheet.create({
   caption: {
     color: colors.textOnDarkMuted,
     fontSize: 12,
-  },
-  admirerGrid: {
-    flexDirection: "row",
-    gap: 10,
-    paddingBottom: 24,
-  },
-  emptyBox: {
-    flex: 1,
   },
   inboxRow: {
     flexDirection: "row",

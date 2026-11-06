@@ -66,8 +66,8 @@ export default function OnboardingStepThree() {
     saveProfile(currentUser.profileId, {
       name: data.firstName.trim(),
       age: birthDate ? getAge(birthDate) : 18,
-      avatar: data.photo,
-      images: [data.photo],
+      avatar: data.photo, // null = no photo, the first letter is shown
+      images: data.photo ? [data.photo] : [],
       tags: data.interests,
       prompts: [
         { question: data.promptQuestion, answer: data.promptAnswer.trim() },

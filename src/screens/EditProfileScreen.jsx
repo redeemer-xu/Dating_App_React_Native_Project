@@ -118,7 +118,7 @@ export default function EditProfileScreen() {
           ? [{ question: promptQuestion, answer: promptAnswer.trim() }]
           : myProfile.prompts,
         avatar: photo,
-        images: [photo],
+        images: photo ? [photo] : [], // no photo = first letter is shown
       });
     }
     router.back();
@@ -144,12 +144,19 @@ export default function EditProfileScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.photoRow}>
-            <Avatar uri={photo} size={88} />
+            <Avatar uri={photo} name={name} size={88} />
             <Button
-              title="Change Photo"
+              title={photo ? "Change Photo" : "Add Photo"}
               variant="secondary"
               onPress={handleChangePhoto}
             />
+            {photo ? (
+              <Button
+                title="Remove Photo"
+                variant="secondary"
+                onPress={() => setPhoto(null)}
+              />
+            ) : null}
           </View>
           {errors.photo ? (
             <Text style={styles.errorText}>{errors.photo}</Text>
