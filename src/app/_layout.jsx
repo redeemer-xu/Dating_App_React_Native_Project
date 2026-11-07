@@ -21,9 +21,17 @@ export default function RootLayout() {
                   <Stack.Screen name="onboarding" />
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="profile/me" />
-                  <Stack.Screen name="profile/[id]" />
-                  <Stack.Screen name="chat/[id]" />
-                  <Stack.Screen name="profile/edit" />
+                  {/* "only once": tapping twice never opens the same
+                      profile or chat twice (then Back works the first time) */}
+                  <Stack.Screen
+                    name="profile/[id]"
+                    dangerouslySingular={(name, params) => params?.id}
+                  />
+                  <Stack.Screen
+                    name="chat/[id]"
+                    dangerouslySingular={(name, params) => params?.id}
+                  />
+                  <Stack.Screen name="profile/edit" dangerouslySingular />
                 </Stack>
               </MatchesProvider>
             </ChatProvider>

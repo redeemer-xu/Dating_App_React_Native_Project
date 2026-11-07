@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -11,13 +10,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
+import PhotoGallery from "../components/PhotoGallery";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
-import { imageSource } from "../utils/imageSource";
-import { colorForName, getInitial } from "../utils/initials";
 
 export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -40,33 +38,23 @@ export default function ProfileDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          {profile.images[0] ? (
-            <Image
-              source={imageSource(profile.images[0])}
-              style={StyleSheet.absoluteFill}
-              contentFit="cover"
-            />
-          ) : (
-            // no photo: big first letter on a colored background
-            <View
-              style={[
-                styles.noPhoto,
-                { backgroundColor: colorForName(profile.name) },
-              ]}
-            >
-              <Text style={styles.noPhotoLetter}>
-                {getInitial(profile.name)}
-              </Text>
-            </View>
-          )}
+          {/* swipe sideways to see all photos */}
+          <PhotoGallery
+            images={profile.images}
+            name={profile.name}
+            style={StyleSheet.absoluteFill}
+            dotsStyle={{ top: 64 }}
+          />
           <LinearGradient
             colors={["rgba(15,15,17,0.1)", "transparent"]}
             style={styles.heroTopFade}
+            pointerEvents="none"
           />
           <LinearGradient
             colors={["transparent", "rgba(15,15,17,0.95)"]}
             locations={[0.4, 1]}
             style={styles.heroBottomFade}
+            pointerEvents="none"
           >
             <Text style={styles.heroName}>
               {profile.name}
@@ -76,7 +64,11 @@ export default function ProfileDetailScreen() {
             <Text style={styles.heroMeta}>{profile.location}</Text>
           </LinearGradient>
 
-          <SafeAreaView edges={["top"]} style={styles.heroHeader}>
+          <SafeAreaView
+            edges={["top"]}
+            style={styles.heroHeader}
+            pointerEvents="box-none"
+          >
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
@@ -139,17 +131,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
-  },
-  noPhoto: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: 60,
-  },
-  noPhotoLetter: {
-    color: "#FFFFFF",
-    fontSize: 160,
-    fontWeight: "800",
   },
   hero: {
     height: 460,
