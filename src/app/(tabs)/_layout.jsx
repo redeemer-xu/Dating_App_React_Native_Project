@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from "expo-router";
-import { Flame, Heart } from "lucide-react-native";
+import { Flame, Heart, User } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
 
@@ -33,6 +33,13 @@ export default function TabLayout() {
         options={{
           title: "Matches",
           tabBarIcon: ({ color }) => <Heart color={color} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => <User color={color} size={24} />,
         }}
       />
     </Tabs>
