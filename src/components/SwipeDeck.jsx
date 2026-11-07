@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, X } from "lucide-react-native";
+import { Heart, X } from "lucide-react-native";
 import { useState } from "react";
 import {
   Animated,
@@ -14,18 +14,11 @@ import DiscoveryCard from "./DiscoveryCard";
 
 const RED = "#FF4D4F";
 const GREEN = "#2ECC71";
-const BLUE = "#4FA3FF";
 
-// One profile card you can swipe, plus the X / heart / chat buttons.
+// One profile card you can swipe, plus the X / heart buttons.
 // Swipe (or tap) left = pass, swipe (or tap) right = like.
 // HomeScreen gives it a new "key" for every profile, so each card starts fresh.
-export default function SwipeDeck({
-  profile,
-  onPass,
-  onLike,
-  onOpenProfile,
-  onChat,
-}) {
+export default function SwipeDeck({ profile, onPass, onLike, onOpenProfile }) {
   const { width } = useWindowDimensions();
   const threshold = width * 0.25; // how far you must drag before it counts
 
@@ -159,15 +152,6 @@ export default function SwipeDeck({
             <Heart size={30} color={colors.accent} fill={colors.accent} />
           </TouchableOpacity>
         </Animated.View>
-
-        {/* Chat button */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={onChat}
-          style={[styles.circle, styles.small, { borderColor: BLUE }]}
-        >
-          <MessageCircle size={24} color={BLUE} strokeWidth={2.5} />
-        </TouchableOpacity>
       </View>
     </>
   );
@@ -205,7 +189,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 22,
+    gap: 40,
     paddingVertical: 18,
   },
   circle: {

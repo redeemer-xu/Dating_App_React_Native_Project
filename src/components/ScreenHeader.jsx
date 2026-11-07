@@ -1,18 +1,11 @@
-import { router } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme/colors";
-import Avatar from "./Avatar";
 
-export default function ScreenHeader({ avatarUri, name, onAvatarPress }) {
+// The "SoulSync" title at the top. (Your profile is now the Profile tab at the bottom.)
+export default function ScreenHeader() {
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>SoulSync</Text>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={onAvatarPress ?? (() => router.push(`/profile/me`))}
-      >
-        <Avatar uri={avatarUri} name={name} size={40} />
-      </TouchableOpacity>
     </View>
   );
 }

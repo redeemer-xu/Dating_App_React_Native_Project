@@ -57,10 +57,7 @@ export default function HomeScreen() {
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container}>
-        <ScreenHeader
-          avatarUri={user?.avatar}
-          name={user?.name || user?.username}
-        />
+        <ScreenHeader />
 
         <View style={styles.headingRow}>
           <View style={styles.heading}>
@@ -85,7 +82,6 @@ export default function HomeScreen() {
             onPass={handlePass}
             onLike={handleLike}
             onOpenProfile={() => router.push(`/profile/${profile.id}`)}
-            onChat={() => router.push(`/chat/${profile.id}`)}
           />
         ) : (
           <View style={styles.emptyState}>

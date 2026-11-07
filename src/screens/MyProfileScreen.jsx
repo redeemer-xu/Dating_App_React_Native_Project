@@ -17,7 +17,8 @@ import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 
-export default function MyProfileScreen() {
+// isTab = opened from the bottom Profile tab (then there is no back arrow)
+export default function MyProfileScreen({ isTab = false }) {
   const {
     currentUser: user,
     onboardingData: savedOnboarding,
@@ -57,12 +58,16 @@ export default function MyProfileScreen() {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.iconButton}
-          >
-            <ArrowLeft size={22} color={colors.textOnDark} />
-          </TouchableOpacity>
+          {isTab ? (
+            <View style={styles.iconButton} />
+          ) : (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.iconButton}
+            >
+              <ArrowLeft size={22} color={colors.textOnDark} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.headerTitle}>Profile</Text>
           <TouchableOpacity onPress={handleSignOut} style={styles.iconButton}>
             <LogOut size={20} color={colors.textOnDarkSecondary} />
