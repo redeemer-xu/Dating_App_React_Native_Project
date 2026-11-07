@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, Camera } from "lucide-react-native";
 import { useState } from "react";
 import {
   ScrollView,
@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
+import ExtraPhotosGrid from "../components/ExtraPhotosGrid";
 import FormInput from "../components/FormInput";
 import GradientBackground from "../components/GradientBackground";
 import PromptPickerCard from "../components/PromptPickerCard";
@@ -30,6 +31,11 @@ export default function EditProfileScreen() {
 
   // Start the inputs with the user's current info
   const [photo, setPhoto] = useState(currentUser?.avatar ?? null);
+  // the up-to-5 extra photos (everything except the profile picture)
+  const [extraPhotos, setExtraPhotos] = useState(
+    currentUser?.photos ??
+      (myProfile?.images ?? []).filter((img) => img !== currentUser?.avatar),
+  );
   const [name, setName] = useState(
     currentUser?.name ??
       onboardingData?.firstName ??
@@ -106,6 +112,7 @@ export default function EditProfileScreen() {
       promptQuestion,
       promptAnswer: promptAnswer.trim(),
       avatar: photo,
+      photos: extraPhotos,
     });
 
     // Update my public card too, so other users see the changes
@@ -118,7 +125,7 @@ export default function EditProfileScreen() {
           ? [{ question: promptQuestion, answer: promptAnswer.trim() }]
           : myProfile.prompts,
         avatar: photo,
-        images: photo ? [photo] : [], // no photo = first letter is shown
+        images: [photo, ...extraPhotos].filter(Boolean), // profile pic first
       });
     }
     router.back();
@@ -144,23 +151,34 @@ export default function EditProfileScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.photoRow}>
-            <Avatar uri={photo} name={name} size={88} />
-            <Button
-              title={photo ? "Change Photo" : "Add Photo"}
-              variant="secondary"
-              onPress={handleChangePhoto}
-            />
+            {/* tap the photo to change it */}
+            <TouchableOpacity activeOpacity={0.8} onPress={handleChangePhoto}>
+              <Avatar uri={photo} name={name} size={100} />
+              <View style={styles.cameraBadge}>
+                <Camera size={16} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
             {photo ? (
-              <Button
-                title="Remove Photo"
-                variant="secondary"
-                onPress={() => setPhoto(null)}
-              />
-            ) : null}
+              <TouchableOpacity onPress={() => setPhoto(null)} hitSlop={10}>
+                <Text style={styles.removeText}>Remove photo</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.hintText}>Tap to add a profile picture</Text>
+            )}
           </View>
           {errors.photo ? (
             <Text style={styles.errorText}>{errors.photo}</Text>
           ) : null}
+
+          <View style={styles.morePhotos}>
+            <ExtraPhotosGrid
+              photos={extraPhotos}
+              onChange={setExtraPhotos}
+              onError={(message) =>
+                setErrors((prev) => ({ ...prev, photo: message }))
+              }
+            />
+          </View>
 
           <FormInput
             label="Name"
@@ -220,10 +238,35 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  morePhotos: {
+    marginBottom: 20,
+  },
   photoRow: {
     alignItems: "center",
     gap: 12,
     marginBottom: 20,
+  },
+  cameraBadge: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.accent,
+    borderWidth: 3,
+    borderColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  removeText: {
+    color: colors.error,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  hintText: {
+    color: colors.textOnDarkMuted,
+    fontSize: 13,
   },
   container: {
     flex: 1,

@@ -30,11 +30,12 @@ export function AuthProvider({ children }) {
     setHasCompletedOnboarding(true);
     if (data) {
       setOnboardingData(data);
-      // save their first name, and the gallery photo if they picked one
+      // save their first name, extra photos, and the profile picture if they picked one
       updateProfile({
         name: data.firstName.trim(),
+        photos: data.extraPhotos ?? [],
         ...(data.photo ? { avatar: data.photo } : {}),
-      }); 
+      });
     }
   };
 

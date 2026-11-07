@@ -9,6 +9,7 @@ const initialState = {
   lookingFor: [],
   photo: null, // profile picture picked from the gallery
   interests: [],
+  extraPhotos: [],
   promptQuestion: "",
   promptAnswer: "",
 };

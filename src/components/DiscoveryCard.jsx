@@ -1,11 +1,27 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { colors } from "../theme/colors";
 import { imageSource } from "../utils/imageSource";
 import { colorForName, getInitial } from "../utils/initials";
 
 export default function DiscoveryCard({ profile, onPress }) {
+  const photos = (profile.images ?? []).filter(Boolean);
+  const [photoIndex, setPhotoIndex] = useState(0); // which photo is showing
+  const hasMany = photos.length > 1;
+
+  // tap the left side = previous photo, right side = next photo
+  const prevPhoto = () => setPhotoIndex((i) => Math.max(0, i - 1));
+  const nextPhoto = () =>
+    setPhotoIndex((i) => Math.min(photos.length - 1, i + 1));
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -13,9 +29,9 @@ export default function DiscoveryCard({ profile, onPress }) {
       onPress={onPress}
       disabled={!onPress}
     >
-      {profile.images[0] ? (
+      {photos.length > 0 ? (
         <Image
-          source={imageSource(profile.images[0])}
+          source={imageSource(photos[photoIndex])}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
           transition={200}
@@ -31,7 +47,27 @@ export default function DiscoveryCard({ profile, onPress }) {
           <Text style={styles.noPhotoLetter}>{getInitial(profile.name)}</Text>
         </View>
       )}
+      {hasMany ? (
+        <>
+          {/* little bars at the top: one per photo */}
+          <View style={styles.bars} pointerEvents="none">
+            {photos.map((_, i) => (
+              <View
+                key={i}
+                style={[styles.bar, i === photoIndex && styles.barActive]}
+              />
+            ))}
+          </View>
+          {/* invisible tap areas on the left and right side of the photo */}
+          <View style={styles.tapZones} pointerEvents="box-none">
+            <Pressable style={styles.tapSide} onPress={prevPhoto} />
+            <View style={styles.tapMiddle} pointerEvents="none" />
+            <Pressable style={styles.tapSide} onPress={nextPhoto} />
+          </View>
+        </>
+      ) : null}
       <LinearGradient
+        pointerEvents="none"
         colors={["transparent", "rgba(15,15,17,0.55)", "rgba(15,15,17,0.95)"]}
         locations={[0, 0.55, 1]}
         style={styles.overlay}
@@ -56,6 +92,39 @@ export default function DiscoveryCard({ profile, onPress }) {
 }
 
 const styles = StyleSheet.create({
+  bars: {
+    position: "absolute",
+    top: 10,
+    left: 12,
+    right: 12,
+    flexDirection: "row",
+    gap: 4,
+    zIndex: 2,
+  },
+  bar: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.35)",
+  },
+  barActive: {
+    backgroundColor: "#FFFFFF",
+  },
+  tapZones: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 170, // stop above the name/info area (tapping there opens the profile)
+    flexDirection: "row",
+    zIndex: 1,
+  },
+  tapSide: {
+    flex: 1,
+  },
+  tapMiddle: {
+    flex: 1,
+  },
   noPhoto: {
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",

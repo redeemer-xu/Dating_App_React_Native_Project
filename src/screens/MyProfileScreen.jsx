@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import Button from "../components/Button";
 import GradientBackground from "../components/GradientBackground";
+import PhotoGallery from "../components/PhotoGallery";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useAuth } from "../context/AuthContext";
@@ -36,6 +37,10 @@ export default function MyProfileScreen({ isTab = false }) {
     user?.username ||
     "Your Profile";
   const avatarUri = user?.avatar; // no photo = first letter of the name
+  // all my photos: profile picture first, then the extra ones
+  const myPhotos =
+    myProfile?.images ??
+    [user?.avatar, ...(user?.photos ?? [])].filter(Boolean);
   const bio =
     user?.bio || myProfile?.bio || "No bio yet. Tap Edit Profile to add one.";
   const tags =
@@ -89,6 +94,19 @@ export default function MyProfileScreen({ isTab = false }) {
               />
             </View>
           </View>
+
+          {myPhotos.length > 0 ? (
+            <>
+              <Text style={styles.sectionTitle}>
+                My photos ({myPhotos.length})
+              </Text>
+              <PhotoGallery
+                images={myPhotos}
+                name={name}
+                style={styles.gallery}
+              />
+            </>
+          ) : null}
 
           <Text style={styles.sectionTitle}>About you</Text>
           <Text style={styles.bio}>{bio}</Text>
@@ -150,6 +168,12 @@ export default function MyProfileScreen({ isTab = false }) {
 }
 
 const styles = StyleSheet.create({
+  gallery: {
+    height: 380,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 20,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 20,
