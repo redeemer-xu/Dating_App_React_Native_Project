@@ -1,6 +1,6 @@
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Flame, SlidersHorizontal } from "lucide-react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
@@ -17,15 +17,25 @@ import { colors } from "../theme/colors";
 
 export default function HomeScreen() {
   const { currentUser: user } = useAuth();
-  const { addMatch, isHidden, matchIds } = useMatches();
-  const { profiles } = useProfiles();
+  const { addMatch, isHidden, matchIds, refreshMatches } = useMatches();
+  const { profiles, loading, error, refreshProfiles } = useProfiles();
+
+  // Every time you open Discover: get the newest profiles from the server
+  // (so people who just signed up show up)
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfiles();
+      refreshMatches();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
   const [seenIds, setSeenIds] = useState([]); // people you already liked or passed
   const [filters, setFilters] = useState(defaultDiscoveryFilters);
   const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
   // 1) people who fit the filters
   const matchingFilters = profiles.filter((p) => {
-    if (p.id === user?.profileId) return false; // never show yourself
+    if (p.id === user?.id) return false; // never show yourself
     if (isHidden(p.id)) return false; // blocked
     const miles = parseInt(p.distance, 10); // "3 miles away" -> 3
     const [minAge, maxAge] = filters.ageRange;
@@ -74,7 +84,24 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {profile ? (
+        {error && profiles.length === 0 ? (
+          // the server could not be reached
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>Can&apos;t load profiles</Text>
+            <Text style={styles.emptyText}>{error}</Text>
+            <View style={styles.startOverWrap}>
+              <Button
+                title="Try again"
+                variant="accent"
+                onPress={refreshProfiles}
+              />
+            </View>
+          </View>
+        ) : loading && profiles.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>Loading profiles...</Text>
+          </View>
+        ) : profile ? (
           // key = a fresh card for every profile
           <SwipeDeck
             key={profile.id}

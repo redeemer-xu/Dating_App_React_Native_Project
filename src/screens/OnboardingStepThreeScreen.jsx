@@ -19,10 +19,11 @@ const MIN_INTERESTS = 3;
 
 export default function OnboardingStepThree() {
   const { data, update, reset } = useOnboarding();
-  const { currentUser, markOnboardingComplete } = useAuth();
+  const { currentUser } = useAuth();
   const { saveProfile } = useProfiles();
   const [search, setSearch] = useState("");
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false); // uploading photos + saving
 
   const filteredInterests = useMemo(() => {
     if (!search.trim()) return interestOptions;
@@ -60,21 +61,32 @@ export default function OnboardingStepThree() {
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    await markOnboardingComplete(data);
-    // Post the new user's profile, so other users can find them in Discover
+    // PATCH /users/:id -> save everything from the 3 steps on the server.
+    // After this, other users can find you in Discover.
     const birthDate = parseBirthday(data.birthday);
-    saveProfile(currentUser.profileId, {
-      name: data.firstName.trim(),
-      age: birthDate ? getAge(birthDate) : 18,
-      avatar: data.photo, // null = no photo, the first letter is shown
-      images: [data.photo, ...data.extraPhotos].filter(Boolean),
-      tags: data.interests,
-      prompts: [
-        { question: data.promptQuestion, answer: data.promptAnswer.trim() },
-      ],
-    });
-    reset();
-    router.replace("/home");
+    setSaving(true);
+    try {
+      await saveProfile(currentUser.id, {
+        name: data.firstName.trim(),
+        age: birthDate ? getAge(birthDate) : 18,
+        birthday: data.birthday,
+        showMe: data.showMe,
+        lookingFor: data.lookingFor,
+        avatar: data.photo, // null = no photo, the first letter is shown
+        photos: data.extraPhotos,
+        tags: data.interests,
+        prompts: [
+          { question: data.promptQuestion, answer: data.promptAnswer.trim() },
+        ],
+        onboarded: true,
+      });
+      reset();
+      router.replace("/home");
+    } catch (err) {
+      setErrors({ save: err.message });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -137,10 +149,18 @@ export default function OnboardingStepThree() {
       </ScrollView>
 
       <View style={styles.footer}>
+        {errors.save ? (
+          <Text style={styles.errorText}>{errors.save}</Text>
+        ) : null}
         <Button
-          title="Complete Profile & Start Syncing"
+          title={
+            saving
+              ? "Saving your profile..."
+              : "Complete Profile & Start Syncing"
+          }
           variant="accent"
           glow
+          disabled={saving}
           onPress={handleComplete}
         />
       </View>

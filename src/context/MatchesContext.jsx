@@ -1,55 +1,84 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import {
+  apiBlock,
+  apiGetBlocks,
+  apiGetLikes,
+  apiLike,
+  apiUnlike,
+} from "../api";
 import { useAuth } from "./AuthContext";
 
 const MatchesContext = createContext(null);
 
+const EMPTY = { owner: null, liked: [], likedBy: [], hidden: [] };
+
+// Likes and blocks of the logged-in user, saved on the server.
 export function MatchesProvider({ children }) {
   const { currentUser } = useAuth();
-  const me = currentUser?.profileId; // the logged-in person's profile id
+  const me = currentUser?.id;
 
-  // Who liked who: { "redeemer": ["jastin", "jennifer"], "jastin": ["redeemer"] }
-  const [likes, setLikes] = useState({});
-  // Who blocked who: { "redeemer": ["tthrystan"] }
-  const [blocks, setBlocks] = useState({});
+  // "owner" = whose data this is. If someone else logs in, we start empty.
+  const [data, setData] = useState(EMPTY);
+  const mine = data.owner === me ? data : EMPTY;
 
-  // The people I liked (my matches), newest first
-  const matchIds = likes[me] ?? [];
-
-  const addMatch = (id) => {
-    setLikes((prev) => {
-      const mine = prev[me] ?? [];
-      if (mine.includes(id)) return prev; // nobody is added twice
-      return { ...prev, [me]: [id, ...mine] };
-    });
+  // GET /users/:id/likes and GET /users/:id/blocks
+  const refreshMatches = async () => {
+    if (!me) return;
+    try {
+      const [likes, blocks] = await Promise.all([
+        apiGetLikes(me),
+        apiGetBlocks(me),
+      ]);
+      setData({ owner: me, ...likes, hidden: blocks.hidden });
+    } catch {
+      // server not reachable: keep what we have, the screen shows the error elsewhere
+    }
   };
 
-  const removeMatch = (id) => {
-    setLikes((prev) => ({
-      ...prev,
-      [me]: (prev[me] ?? []).filter((matchId) => matchId !== id),
+  // useEffect: load my likes/blocks when I log in
+  useEffect(() => {
+    // loading data from the server is a normal job for useEffect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (me) refreshMatches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me]);
+
+  // Update the screen right away, then tell the server
+  const change = (update) =>
+    setData((prev) => ({
+      ...update(prev.owner === me ? prev : { ...EMPTY, owner: me }),
+      owner: me,
     }));
+
+  // POST /likes
+  const addMatch = (id) => {
+    change((d) =>
+      d.liked.includes(id) ? d : { ...d, liked: [id, ...d.liked] },
+    );
+    apiLike(me, id).catch(refreshMatches);
   };
 
-  // Block: hide them from me AND me from them, and unmatch
+  // DELETE /likes/:me/:id
+  const removeMatch = (id) => {
+    change((d) => ({ ...d, liked: d.liked.filter((x) => x !== id) }));
+    apiUnlike(me, id).catch(refreshMatches);
+  };
+
+  // POST /blocks (the server also removes my like)
   const blockUser = (id) => {
-    setBlocks((prev) => {
-      const mine = prev[me] ?? [];
-      return mine.includes(id) ? prev : { ...prev, [me]: [...mine, id] };
-    });
-    removeMatch(id);
+    change((d) => ({
+      ...d,
+      liked: d.liked.filter((x) => x !== id),
+      hidden: d.hidden.includes(id) ? d.hidden : [...d.hidden, id],
+    }));
+    apiBlock(me, id).catch(refreshMatches);
   };
 
-  // true if one of us blocked the other
-  const isHidden = (id) =>
-    (blocks[me] ?? []).includes(id) || (blocks[id] ?? []).includes(me);
-
-  // People who liked me, that I have not liked back yet (secret admirers)
-  const admirerIds = Object.keys(likes).filter(
-    (likerId) =>
-      likerId !== me &&
-      likes[likerId].includes(me) &&
-      !matchIds.includes(likerId) &&
-      !isHidden(likerId),
+  const matchIds = mine.liked; // people I liked
+  const isHidden = (id) => mine.hidden.includes(String(id)); // blocked either way
+  // people who liked me, that I have not liked back yet
+  const admirerIds = mine.likedBy.filter(
+    (id) => !mine.liked.includes(id) && !mine.hidden.includes(id),
   );
 
   return (
@@ -61,6 +90,7 @@ export function MatchesProvider({ children }) {
         blockUser,
         isHidden,
         admirerIds,
+        refreshMatches,
       }}
     >
       {children}

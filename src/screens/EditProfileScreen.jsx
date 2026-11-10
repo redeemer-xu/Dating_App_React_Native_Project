@@ -25,43 +25,24 @@ import { pickImageFromGallery } from "../utils/pickImage";
 const MAX_BIO_LENGTH = 150;
 
 export default function EditProfileScreen() {
-  const { currentUser, onboardingData, updateProfile } = useAuth();
-  const { getProfile, saveProfile } = useProfiles();
-  const myProfile = getProfile(currentUser?.profileId); // what others see
+  const { currentUser } = useAuth();
+  const { saveProfile } = useProfiles();
 
-  // Start the inputs with the user's current info
+  // Start the inputs with my current profile (from the server)
   const [photo, setPhoto] = useState(currentUser?.avatar ?? null);
-  // the up-to-5 extra photos (everything except the profile picture)
-  const [extraPhotos, setExtraPhotos] = useState(
-    currentUser?.photos ??
-      (myProfile?.images ?? []).filter((img) => img !== currentUser?.avatar),
-  );
+  const [extraPhotos, setExtraPhotos] = useState(currentUser?.photos ?? []); // up to 5
   const [name, setName] = useState(
-    currentUser?.name ??
-      onboardingData?.firstName ??
-      myProfile?.name ??
-      currentUser?.username ??
-      "",
+    currentUser?.name ?? currentUser?.username ?? "",
   );
-  const [bio, setBio] = useState(currentUser?.bio ?? myProfile?.bio ?? "");
-  const [interests, setInterests] = useState(
-    currentUser?.interests ??
-      onboardingData?.interests ??
-      myProfile?.tags ??
-      [],
-  );
+  const [bio, setBio] = useState(currentUser?.bio ?? "");
+  const [interests, setInterests] = useState(currentUser?.tags ?? []);
   const [promptQuestion, setPromptQuestion] = useState(
-    currentUser?.promptQuestion ??
-      onboardingData?.promptQuestion ??
-      myProfile?.prompts?.[0]?.question ??
-      "",
+    currentUser?.prompts?.[0]?.question ?? "",
   );
   const [promptAnswer, setPromptAnswer] = useState(
-    currentUser?.promptAnswer ??
-      onboardingData?.promptAnswer ??
-      myProfile?.prompts?.[0]?.answer ??
-      "",
+    currentUser?.prompts?.[0]?.answer ?? "",
   );
+  const [saving, setSaving] = useState(false); // uploading photos + saving
   const [errors, setErrors] = useState({});
 
   // Pick a new profile picture from the gallery
@@ -83,7 +64,7 @@ export default function EditProfileScreen() {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newErrors = {};
 
     if (name.trim().length < 2) {
@@ -105,30 +86,25 @@ export default function EditProfileScreen() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    updateProfile({
-      name: name.trim(),
-      bio: bio.trim(),
-      interests,
-      promptQuestion,
-      promptAnswer: promptAnswer.trim(),
-      avatar: photo,
-      photos: extraPhotos,
-    });
-
-    // Update my public card too, so other users see the changes
-    if (myProfile) {
-      saveProfile(myProfile.id, {
+    // PATCH /users/:id -> new photos are uploaded first, then everything is saved
+    setSaving(true);
+    try {
+      await saveProfile(currentUser.id, {
         name: name.trim(),
-        bio: bio.trim() || myProfile.bio,
+        bio: bio.trim(),
         tags: interests,
         prompts: promptQuestion
           ? [{ question: promptQuestion, answer: promptAnswer.trim() }]
-          : myProfile.prompts,
+          : [],
         avatar: photo,
-        images: [photo, ...extraPhotos].filter(Boolean), // profile pic first
+        photos: extraPhotos,
       });
+      router.back();
+    } catch (err) {
+      setErrors({ save: err.message });
+    } finally {
+      setSaving(false);
     }
-    router.back();
   };
 
   return (
@@ -224,7 +200,15 @@ export default function EditProfileScreen() {
           ) : null}
 
           <View style={styles.actions}>
-            <Button title="Save" variant="accent" onPress={handleSave} />
+            {errors.save ? (
+              <Text style={styles.errorText}>{errors.save}</Text>
+            ) : null}
+            <Button
+              title={saving ? "Saving..." : "Save"}
+              variant="accent"
+              onPress={handleSave}
+              disabled={saving}
+            />
             <Button
               title="Cancel"
               variant="secondary"

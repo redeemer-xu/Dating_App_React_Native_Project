@@ -1,20 +1,41 @@
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { colors } from '../theme/colors';
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { colors } from "../theme/colors";
 
-export default function Button({ title, onPress, variant = 'primary', glow = false }) {
-  const isPrimary = variant === 'primary';
-  const isAccent = variant === 'accent';
+// disabled = grey and not tappable (e.g. while waiting for the server)
+export default function Button({
+  title,
+  onPress,
+  variant = "primary",
+  glow = false,
+  disabled = false,
+}) {
+  const isPrimary = variant === "primary";
+  const isAccent = variant === "accent";
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        isPrimary ? styles.primary : isAccent ? styles.accent : styles.secondary,
+        isPrimary
+          ? styles.primary
+          : isAccent
+            ? styles.accent
+            : styles.secondary,
         glow && styles.glow,
+        disabled && styles.disabled,
       ]}
       onPress={onPress}
+      disabled={disabled}
     >
-      <Text style={isPrimary ? styles.primaryText : isAccent ? styles.accentText : styles.secondaryText}>
+      <Text
+        style={
+          isPrimary
+            ? styles.primaryText
+            : isAccent
+              ? styles.accentText
+              : styles.secondaryText
+        }
+      >
         {title}
       </Text>
     </TouchableOpacity>
@@ -25,8 +46,12 @@ const styles = StyleSheet.create({
   button: {
     height: 52,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  disabled: {
+    opacity: 0.55,
   },
 
   primary: {
@@ -52,20 +77,20 @@ const styles = StyleSheet.create({
   },
 
   primaryText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   accentText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   secondaryText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

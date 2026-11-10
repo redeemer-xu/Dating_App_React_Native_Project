@@ -7,7 +7,6 @@ import FormInput from "../components/FormInput";
 import GradientBackground from "../components/GradientBackground";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/AuthContext";
-import { findUser } from "../data/mockUsers";
 import { authStyles } from "../theme/authStyles";
 import { isValidEmail, isValidPassword } from "../utils/validation";
 
@@ -15,6 +14,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); // waiting for the server
   const { login } = useAuth();
 
   const clearError = (field) => {
@@ -23,7 +23,7 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const newErrors = {};
 
     if (!email.trim()) {
@@ -41,13 +41,16 @@ export default function LoginScreen() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const user = findUser(email, password);
-
-    if (user) {
-      login(user);
-      router.replace("/home");
-    } else {
-      Alert.alert("Login Failed", "Incorrect email or password.");
+    // POST /login to our FastAPI server
+    setLoading(true);
+    try {
+      const user = await login(email.trim(), password);
+      // not finished onboarding yet? continue there
+      router.replace(user.onboarded ? "/home" : "/onboarding/step-1");
+    } catch (err) {
+      Alert.alert("Login Failed", err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,7 +88,11 @@ export default function LoginScreen() {
           error={errors.password}
         />
 
-        <Button title="Login" onPress={handleLogin} />
+        <Button
+          title={loading ? "Logging in..." : "Login"}
+          onPress={handleLogin}
+          disabled={loading}
+        />
 
         <TouchableOpacity onPress={() => router.push("/register")}>
           <Text style={authStyles.footerText}>

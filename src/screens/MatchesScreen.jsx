@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import {
   Alert,
   ScrollView,
@@ -18,10 +19,27 @@ import { colors } from "../theme/colors";
 
 export default function MatchesScreen() {
   const { currentUser } = useAuth();
-  const { getProfile } = useProfiles();
-  const { getInbox } = useChat();
-  const { matchIds, removeMatch, isHidden, admirerIds } = useMatches();
-  const me = currentUser?.profileId;
+  const { getProfile, refreshProfiles } = useProfiles();
+  const { getInbox, loadInbox, chatError } = useChat();
+  const { matchIds, removeMatch, isHidden, admirerIds, refreshMatches } =
+    useMatches();
+  const me = currentUser?.id;
+
+  // While this tab is open: get the newest messages, likes and profiles,
+  // then check again every 5 seconds. Stops when you leave the tab.
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfiles();
+      const update = () => {
+        loadInbox();
+        refreshMatches();
+      };
+      update();
+      const timer = setInterval(update, 5000);
+      return () => clearInterval(timer);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [me]),
+  );
 
   // turn the saved ids into full profiles (name, avatar...)
   const sparks = matchIds
@@ -29,7 +47,7 @@ export default function MatchesScreen() {
     .filter((p) => p && p.id !== me && !isHidden(p.id));
 
   // my conversations, newest first (also messages people sent ME)
-  const inbox = getInbox(me)
+  const inbox = getInbox()
     .map((item) => ({ ...item, profile: getProfile(item.otherId) }))
     .filter((item) => item.profile && !isHidden(item.otherId));
 
@@ -59,6 +77,8 @@ export default function MatchesScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
+          {chatError ? <Text style={styles.errorText}>{chatError}</Text> : null}
+
           <Text style={styles.sectionTitle}>New sparks</Text>
           {sparks.length > 0 ? (
             <Text style={styles.hint}>Hold a profile to unmatch</Text>
@@ -176,6 +196,11 @@ const styles = StyleSheet.create({
     color: colors.textOnDarkMuted,
     fontSize: 12,
     marginTop: -8,
+    marginBottom: 12,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 13,
     marginBottom: 12,
   },
   emptyText: {
