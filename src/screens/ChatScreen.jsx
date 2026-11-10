@@ -7,7 +7,7 @@ import {
   Send,
   User,
 } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -34,13 +34,29 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams(); // the other person's profile id
   const { currentUser } = useAuth();
   const { getProfile } = useProfiles();
-  const { getMessages, sendMessage, deleteMessage } = useChat();
+  const {
+    getMessages,
+    sendMessage,
+    deleteMessage,
+    loadConversation,
+    chatError,
+  } = useChat();
   const { matchIds, removeMatch, blockUser, isHidden } = useMatches();
   const [draft, setDraft] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const me = currentUser?.profileId;
+  const me = currentUser?.id;
   const other = getProfile(id);
+
+  // useEffect: load the messages now, then check the server every 3 seconds
+  // so new messages from the other person show up by themselves
+  useEffect(() => {
+    if (!me || !id) return;
+    loadConversation(id);
+    const timer = setInterval(() => loadConversation(id), 3000);
+    return () => clearInterval(timer); // stop checking when you leave the chat
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, id]);
 
   if (!other || isHidden(id)) {
     return (
@@ -51,16 +67,23 @@ export default function ChatScreen() {
   }
 
   // Saved messages have a senderId. The bubble needs "me" or "them".
-  const messages = getMessages(me, id).map((m) => ({
+  const messages = getMessages(id).map((m) => ({
     ...m,
     from: m.senderId === me ? "me" : "them",
   }));
   const isMatch = matchIds.includes(id);
 
-  const handleSend = () => {
-    if (!draft.trim()) return;
-    sendMessage(me, id, draft.trim()); // the other person will see it too
+  // POST /messages -> saved on the server, so the other person receives it
+  const handleSend = async () => {
+    const text = draft.trim();
+    if (!text) return;
     setDraft("");
+    try {
+      await sendMessage(id, text);
+    } catch (err) {
+      setDraft(text); // give the text back so it isn't lost
+      Alert.alert("Message not sent", err.message);
+    }
   };
 
   const confirmDelete = (message) => {
@@ -71,7 +94,7 @@ export default function ChatScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => deleteMessage(me, id, message.id),
+        onPress: () => deleteMessage(id, message.id),
       },
     ]);
   };
@@ -196,6 +219,8 @@ export default function ChatScreen() {
         </Pressable>
       </Modal>
 
+      {chatError ? <Text style={styles.errorBanner}>{chatError}</Text> : null}
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior="padding"
@@ -298,6 +323,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.textOnDarkMuted,
     letterSpacing: 0.3,
+  },
+  errorBanner: {
+    color: "#FFFFFF",
+    backgroundColor: colors.error,
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
   },
   emptyText: {
     color: colors.textOnDarkMuted,

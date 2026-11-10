@@ -1,45 +1,28 @@
 import { createContext, useContext, useState } from "react";
-import { updateUser } from "../data/mockUsers";
+import { apiLogin, apiRegister } from "../api";
 
 const AuthContext = createContext(null);
 
+// Who is logged in. The account itself lives on our FastAPI server.
 export function AuthProvider({ children }) {
-  // The whiteboard's contents
   const [currentUser, setCurrentUser] = useState(null);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const [onboardingData, setOnboardingData] = useState(null);
 
-  // BLANK 1: save the user who just logged in
-  const login = (user) => {
+  // POST /login -> the server checks the email + password
+  const login = async (email, password) => {
+    const user = await apiLogin(email, password);
     setCurrentUser(user);
+    return user;
   };
 
-  // BLANK 2: clear everything when signing out
-  const logout = () => {
-    setCurrentUser(null);
-    setHasCompletedOnboarding(false);
-    setOnboardingData(null);
+  // POST /register -> the server creates the account
+  const register = async (username, email, password) => {
+    const user = await apiRegister(username, email, password);
+    setCurrentUser(user);
+    return user;
   };
 
-  const updateProfile = (changes) => {
-    updateUser(currentUser.id, changes);
-    setCurrentUser((prev) => ({ ...prev, ...changes }));
-  };
+  const logout = () => setCurrentUser(null);
 
-  const markOnboardingComplete = (data = null) => {
-    setHasCompletedOnboarding(true);
-    if (data) {
-      setOnboardingData(data);
-      // save their first name, extra photos, and the profile picture if they picked one
-      updateProfile({
-        name: data.firstName.trim(),
-        photos: data.extraPhotos ?? [],
-        ...(data.photo ? { avatar: data.photo } : {}),
-      });
-    }
-  };
-
-  // BLANK 3: true if someone is logged in, false if not
   const isLoggedIn = currentUser !== null;
 
   return (
@@ -47,12 +30,10 @@ export function AuthProvider({ children }) {
       value={{
         currentUser,
         isLoggedIn,
-        hasCompletedOnboarding,
-        onboardingData,
         login,
+        register,
         logout,
-        updateProfile,
-        markOnboardingComplete,
+        setCurrentUser, // used after the server sends back an updated profile
       }}
     >
       {children}

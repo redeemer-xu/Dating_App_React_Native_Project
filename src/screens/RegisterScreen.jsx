@@ -1,13 +1,12 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import GradientBackground from "../components/GradientBackground";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/AuthContext";
-import { addUser, emailExists } from "../data/mockUsers";
 import { authStyles } from "../theme/authStyles";
 import {
   isValidEmail,
@@ -21,7 +20,8 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
-  const { login } = useAuth();
+  const [loading, setLoading] = useState(false); // waiting for the server
+  const { register } = useAuth();
 
   const clearError = (field) => {
     if (errors[field]) {
@@ -29,7 +29,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const newErrors = {};
 
     if (!username.trim()) {
@@ -42,8 +42,6 @@ export default function RegisterScreen() {
       newErrors.email = "Email is required.";
     } else if (!isValidEmail(email)) {
       newErrors.email = "Enter a valid email address.";
-    } else if (emailExists(email)) {
-      newErrors.email = "An account with this email already exists.";
     }
 
     if (!password) {
@@ -61,10 +59,20 @@ export default function RegisterScreen() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const newUser = addUser(username, email, password);
-
-    login(newUser);
-    router.replace("/onboarding/step-1");
+    // POST /register to our FastAPI server
+    setLoading(true);
+    try {
+      await register(username.trim(), email.trim(), password);
+      router.replace("/onboarding/step-1");
+    } catch (err) {
+      if (err.message.includes("already exists")) {
+        setErrors({ email: err.message }); // the server said: email taken
+      } else {
+        Alert.alert("Sign Up Failed", err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,7 +132,11 @@ export default function RegisterScreen() {
           error={errors.confirmPassword}
         />
 
-        <Button title="Sign Up" onPress={handleRegister} />
+        <Button
+          title={loading ? "Creating account..." : "Sign Up"}
+          onPress={handleRegister}
+          disabled={loading}
+        />
 
         <TouchableOpacity onPress={() => router.push("/login")}>
           <Text style={authStyles.footerText}>

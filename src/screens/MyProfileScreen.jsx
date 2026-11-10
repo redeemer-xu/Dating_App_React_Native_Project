@@ -15,45 +15,21 @@ import PhotoGallery from "../components/PhotoGallery";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useAuth } from "../context/AuthContext";
-import { useProfiles } from "../context/ProfilesContext";
 import { colors } from "../theme/colors";
 
 // isTab = opened from the bottom Profile tab (then there is no back arrow)
 export default function MyProfileScreen({ isTab = false }) {
-  const {
-    currentUser: user,
-    onboardingData: savedOnboarding,
-    logout,
-  } = useAuth();
+  const { currentUser: user, logout } = useAuth();
 
-  // my public profile (what others see in Discover)
-  const { getProfile } = useProfiles();
-  const myProfile = getProfile(user?.profileId);
-
-  const name =
-    user?.name ||
-    savedOnboarding?.firstName ||
-    myProfile?.name ||
-    user?.username ||
-    "Your Profile";
+  // My profile comes from the server: the same data other people see
+  const name = user?.name || user?.username || "Your Profile";
   const avatarUri = user?.avatar; // no photo = first letter of the name
-  // all my photos: profile picture first, then the extra ones
-  const myPhotos =
-    myProfile?.images ??
-    [user?.avatar, ...(user?.photos ?? [])].filter(Boolean);
-  const bio =
-    user?.bio || myProfile?.bio || "No bio yet. Tap Edit Profile to add one.";
-  const tags =
-    user?.interests ?? savedOnboarding?.interests ?? myProfile?.tags ?? [];
-  const promptQuestion =
-    user?.promptQuestion ?? savedOnboarding?.promptQuestion;
-  const promptAnswer = user?.promptAnswer ?? savedOnboarding?.promptAnswer;
-  const prompts = promptQuestion
-    ? [{ question: promptQuestion, answer: promptAnswer }]
-    : (myProfile?.prompts ?? []);
+  const myPhotos = user?.images ?? []; // profile picture first, then extra photos
+  const bio = user?.bio || "No bio yet. Tap Edit Profile to add one.";
+  const tags = user?.tags ?? [];
+  const prompts = user?.prompts ?? [];
 
-  // Messages and likes are NOT cleared, so the next person who logs in
-  // can still receive what you sent them.
+  // Your likes and messages stay saved on the server
   const handleSignOut = () => {
     logout();
     router.replace("/");
@@ -111,31 +87,25 @@ export default function MyProfileScreen({ isTab = false }) {
           <Text style={styles.sectionTitle}>About you</Text>
           <Text style={styles.bio}>{bio}</Text>
 
-          {savedOnboarding?.birthday ||
-          savedOnboarding?.lookingFor?.length ||
-          savedOnboarding?.showMe ? (
+          {user?.birthday || user?.lookingFor?.length || user?.showMe ? (
             <View style={styles.detailsGrid}>
-              {savedOnboarding?.birthday ? (
+              {user?.birthday ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Birthday</Text>
-                  <Text style={styles.detailValue}>
-                    {savedOnboarding.birthday}
-                  </Text>
+                  <Text style={styles.detailValue}>{user.birthday}</Text>
                 </View>
               ) : null}
-              {savedOnboarding?.showMe ? (
+              {user?.showMe ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Show me</Text>
-                  <Text style={styles.detailValue}>
-                    {savedOnboarding.showMe}
-                  </Text>
+                  <Text style={styles.detailValue}>{user.showMe}</Text>
                 </View>
               ) : null}
-              {savedOnboarding?.lookingFor?.length ? (
+              {user?.lookingFor?.length ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Looking for</Text>
                   <Text style={styles.detailValue}>
-                    {savedOnboarding.lookingFor.join(", ")}
+                    {user.lookingFor.join(", ")}
                   </Text>
                 </View>
               ) : null}
