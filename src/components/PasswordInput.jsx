@@ -1,8 +1,8 @@
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
-import { fieldStyles } from './fieldStyles';
+import { useTheme } from '../context/ThemeContext';
+import { makeFieldStyles } from './fieldStyles';
 
 export default function PasswordInput({
   label,
@@ -11,6 +11,9 @@ export default function PasswordInput({
   placeholder = 'Enter password',
   error,
 }) {
+  const { colors } = useTheme();
+  const fieldStyles = makeFieldStyles(colors);
+  const styles = makeStyles(colors);
   const [visible, setVisible] = useState(false);
 
   return (
@@ -38,7 +41,8 @@ export default function PasswordInput({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

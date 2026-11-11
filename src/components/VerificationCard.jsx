@@ -1,8 +1,10 @@
-import { Camera, ShieldCheck } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors } from "../theme/colors";
+import { Camera, ShieldCheck } from 'lucide-react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export default function VerificationCard({ onPress }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.card}>
       <View style={styles.iconCircle}>
@@ -16,21 +18,18 @@ export default function VerificationCard({ onPress }) {
         </Text>
       </View>
 
-      <TouchableOpacity
-        style={styles.cameraButton}
-        activeOpacity={0.85}
-        onPress={onPress}
-      >
+      <TouchableOpacity style={styles.cameraButton} activeOpacity={0.85} onPress={onPress}>
         <Camera size={20} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   card: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 14,
     backgroundColor: colors.cardAlt,
     borderRadius: 18,
@@ -41,12 +40,12 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: colors.accentSoft,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: '700',
     color: colors.textOnDark,
     marginBottom: 4,
   },
@@ -60,7 +59,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

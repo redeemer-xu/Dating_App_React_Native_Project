@@ -1,17 +1,14 @@
-import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
-import { colors } from "../theme/colors";
-import { imageSource } from "../utils/imageSource";
-import { colorForName, getInitial } from "../utils/initials";
+import { Image } from 'expo-image';
+import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { imageSource } from '../utils/imageSource';
+import { colorForName, getInitial } from '../utils/initials';
+
 
 // uri = the photo. If there is no photo, the first letter of "name" is shown.
-export default function Avatar({
-  uri,
-  name,
-  size = 48,
-  ringed = false,
-  online = false,
-}) {
+export default function Avatar({ uri, name, size = 48, ringed = false, online = false }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const dimension = ringed ? size + 6 : size;
   const circle = { width: size, height: size, borderRadius: size / 2 };
 
@@ -21,11 +18,7 @@ export default function Avatar({
         <View
           style={[
             styles.ring,
-            {
-              width: dimension,
-              height: dimension,
-              borderRadius: dimension / 2,
-            },
+            { width: dimension, height: dimension, borderRadius: dimension / 2 },
           ]}
         />
       )}
@@ -37,13 +30,7 @@ export default function Avatar({
           transition={150}
         />
       ) : (
-        <View
-          style={[
-            styles.initialCircle,
-            circle,
-            { backgroundColor: colorForName(name) },
-          ]}
-        >
+        <View style={[styles.initialCircle, circle, { backgroundColor: colorForName(name) }]}>
           <Text style={[styles.initialText, { fontSize: size * 0.42 }]}>
             {getInitial(name)}
           </Text>
@@ -67,13 +54,14 @@ export default function Avatar({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   wrapper: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ring: {
-    position: "absolute",
+    position: 'absolute',
     borderWidth: 2,
     borderColor: colors.accent,
   },
@@ -81,15 +69,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardAlt,
   },
   initialCircle: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   initialText: {
-    color: "#FFFFFF",
-    fontWeight: "800",
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
   onlineDot: {
-    position: "absolute",
+    position: 'absolute',
     backgroundColor: colors.online,
     borderWidth: 2,
     borderColor: colors.background,

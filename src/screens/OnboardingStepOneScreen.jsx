@@ -8,13 +8,15 @@ import FormInput from "../components/FormInput";
 import OnboardingHeader from "../components/OnboardingHeader";
 import SelectableChip from "../components/SelectableChip";
 import { useOnboarding } from "../context/OnboardingContext";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 import { getAge, parseBirthday } from "../utils/validation";
 
 const SHOW_ME_OPTIONS = ["Women", "Men", "Everyone"];
 const LOOKING_FOR_OPTIONS = ["Long-term", "Casual", "Not Sure"];
 
 export default function OnboardingStepOne() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data, update } = useOnboarding();
   const [errors, setErrors] = useState({});
 
@@ -126,7 +128,8 @@ export default function OnboardingStepOne() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

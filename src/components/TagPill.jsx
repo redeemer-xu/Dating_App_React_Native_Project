@@ -1,11 +1,14 @@
 import { StyleSheet, Text } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 export default function TagPill({ label }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return <Text style={styles.pill}>{label}</Text>;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   pill: {
     backgroundColor: colors.accentSoft,
     color: colors.accent,

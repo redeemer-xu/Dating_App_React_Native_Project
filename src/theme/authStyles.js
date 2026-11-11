@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors } from './colors';
-
-export const authStyles = StyleSheet.create({
+// Shared look of Login and Register. Call makeAuthStyles(colors) inside a component.
+export const makeAuthStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -16,7 +16,7 @@ export const authStyles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textOnDark,
     marginBottom: 8,
   },
 

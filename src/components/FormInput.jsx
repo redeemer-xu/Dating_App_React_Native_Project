@@ -1,6 +1,6 @@
 import { Text, TextInput, View } from "react-native";
-import { colors } from "../theme/colors";
-import { fieldStyles } from "./fieldStyles";
+import { useTheme } from "../context/ThemeContext";
+import { makeFieldStyles } from "./fieldStyles";
 
 export default function FormInput({
   label,
@@ -13,6 +13,8 @@ export default function FormInput({
   maxLength,
   error,
 }) {
+  const { colors } = useTheme();
+  const fieldStyles = makeFieldStyles(colors);
   return (
     <View style={fieldStyles.wrapper}>
       {label ? <Text style={fieldStyles.label}>{label}</Text> : null}

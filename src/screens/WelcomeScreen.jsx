@@ -4,9 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import GradientBackground from "../components/GradientBackground";
 import { useAuth } from "../context/AuthContext";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 export default function WelcomeScreen() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { currentUser } = useAuth();
 
   // Already logged in? Don't show the Welcome screen again (e.g. after pressing Back).
@@ -43,7 +45,8 @@ export default function WelcomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "transparent",

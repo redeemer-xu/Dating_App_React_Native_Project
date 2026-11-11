@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ArrowLeft, LogOut } from "lucide-react-native";
+import { ArrowLeft, Settings } from "lucide-react-native";
 import {
   ScrollView,
   StyleSheet,
@@ -15,11 +15,13 @@ import PhotoGallery from "../components/PhotoGallery";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useAuth } from "../context/AuthContext";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 // isTab = opened from the bottom Profile tab (then there is no back arrow)
 export default function MyProfileScreen({ isTab = false }) {
-  const { currentUser: user, logout } = useAuth();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const { currentUser: user } = useAuth();
 
   // My profile comes from the server: the same data other people see
   const name = user?.name || user?.username || "Your Profile";
@@ -28,12 +30,6 @@ export default function MyProfileScreen({ isTab = false }) {
   const bio = user?.bio || "No bio yet. Tap Edit Profile to add one.";
   const tags = user?.tags ?? [];
   const prompts = user?.prompts ?? [];
-
-  // Your likes and messages stay saved on the server
-  const handleSignOut = () => {
-    logout();
-    router.replace("/");
-  };
 
   return (
     <GradientBackground>
@@ -50,8 +46,13 @@ export default function MyProfileScreen({ isTab = false }) {
             </TouchableOpacity>
           )}
           <Text style={styles.headerTitle}>Profile</Text>
-          <TouchableOpacity onPress={handleSignOut} style={styles.iconButton}>
-            <LogOut size={20} color={colors.textOnDarkSecondary} />
+          {/* gear = Settings (change password, theme, sign out) */}
+          <TouchableOpacity
+            onPress={() => router.push("/settings")}
+            style={styles.iconButton}
+            accessibilityLabel="Settings"
+          >
+            <Settings size={22} color={colors.textOnDark} />
           </TouchableOpacity>
         </View>
 
@@ -87,18 +88,24 @@ export default function MyProfileScreen({ isTab = false }) {
           <Text style={styles.sectionTitle}>About you</Text>
           <Text style={styles.bio}>{bio}</Text>
 
-          {user?.birthday || user?.lookingFor?.length || user?.showMe ? (
+          {user?.birthday ||
+          user?.lookingFor?.length ||
+          user?.showMe ? (
             <View style={styles.detailsGrid}>
               {user?.birthday ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Birthday</Text>
-                  <Text style={styles.detailValue}>{user.birthday}</Text>
+                  <Text style={styles.detailValue}>
+                    {user.birthday}
+                  </Text>
                 </View>
               ) : null}
               {user?.showMe ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Show me</Text>
-                  <Text style={styles.detailValue}>{user.showMe}</Text>
+                  <Text style={styles.detailValue}>
+                    {user.showMe}
+                  </Text>
                 </View>
               ) : null}
               {user?.lookingFor?.length ? (
@@ -137,7 +144,8 @@ export default function MyProfileScreen({ isTab = false }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   gallery: {
     height: 380,
     borderRadius: 20,

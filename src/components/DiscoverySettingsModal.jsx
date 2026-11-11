@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 import PillTabSwitcher from "./PillTabSwitcher";
 import RangeSlider from "./RangeSlider";
 import Slider from "./Slider";
@@ -21,6 +21,8 @@ export default function DiscoverySettingsModal({
   filters,
   onApply,
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState(filters);
   const [wasVisible, setWasVisible] = useState(isVisible);
@@ -126,10 +128,11 @@ export default function DiscoverySettingsModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(15, 15, 17, 0.6)",
+    backgroundColor: colors.overlay,
     justifyContent: "flex-end",
   },
   sheet: {

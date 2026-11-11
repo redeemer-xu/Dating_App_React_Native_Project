@@ -1,32 +1,15 @@
 import { Trash2 } from "lucide-react-native";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { REACTIONS } from "../data/reactions";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 // Shows after you long press a message (like Facebook Messenger):
 // a bar of reactions, and "Delete" if it is your own message.
-export default function ReactionPicker({
-  message,
-  myReaction,
-  canDelete,
-  onPick,
-  onDelete,
-  onClose,
-}) {
+export default function ReactionPicker({ message, myReaction, canDelete, onPick, onDelete, onClose }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
-    <Modal
-      visible={!!message}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={!!message} transparent animationType="fade" onRequestClose={onClose}>
       {/* tap anywhere outside to close */}
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View style={styles.bar}>
@@ -34,10 +17,7 @@ export default function ReactionPicker({
             <TouchableOpacity
               key={r.key}
               onPress={() => onPick(r.key)}
-              style={[
-                styles.emojiButton,
-                myReaction === r.key && styles.emojiChosen,
-              ]}
+              style={[styles.emojiButton, myReaction === r.key && styles.emojiChosen]}
               activeOpacity={0.7}
             >
               <Text style={styles.emoji}>{r.emoji}</Text>
@@ -50,11 +30,7 @@ export default function ReactionPicker({
         ) : null}
 
         {canDelete ? (
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={onDelete}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.deleteButton} onPress={onDelete} activeOpacity={0.8}>
             <Trash2 size={18} color={colors.error} />
             <Text style={styles.deleteText}>Delete message</Text>
           </TouchableOpacity>
@@ -64,7 +40,8 @@ export default function ReactionPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",

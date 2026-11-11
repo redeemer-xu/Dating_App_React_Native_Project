@@ -1,8 +1,8 @@
-import { router } from "expo-router";
-import { Sparkles } from "lucide-react-native";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors } from "../theme/colors";
-import Avatar from "./Avatar";
+import { router } from 'expo-router';
+import { Sparkles } from 'lucide-react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import Avatar from './Avatar';
 
 export default function MatchOverlay({
   isVisible,
@@ -12,6 +12,8 @@ export default function MatchOverlay({
   currentUserName,
   onSendMessage,
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   if (!matchedUser) return null;
 
   const handleSendMessage = () => {
@@ -24,24 +26,11 @@ export default function MatchOverlay({
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={isVisible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.dialog}>
-          <Sparkles
-            size={20}
-            color={colors.accent}
-            style={styles.sparkleTopLeft}
-          />
-          <Sparkles
-            size={16}
-            color={colors.accent}
-            style={styles.sparkleBottomRight}
-          />
+          <Sparkles size={20} color={colors.accent} style={styles.sparkleTopLeft} />
+          <Sparkles size={16} color={colors.accent} style={styles.sparkleBottomRight} />
 
           <View style={styles.tag}>
             <Text style={styles.tagText}>INSTANT SPARK</Text>
@@ -51,27 +40,15 @@ export default function MatchOverlay({
 
           <View style={styles.avatarRow}>
             <View style={[styles.avatarWrap, styles.avatarLeft]}>
-              <Avatar
-                uri={currentUserAvatar}
-                name={currentUserName}
-                size={96}
-                ringed
-              />
+              <Avatar uri={currentUserAvatar} name={currentUserName} size={96} ringed />
             </View>
             <View style={[styles.avatarWrap, styles.avatarRight]}>
-              <Avatar
-                uri={matchedUser.avatar}
-                name={matchedUser.name}
-                size={96}
-                ringed
-              />
+              <Avatar uri={matchedUser.avatar} name={matchedUser.name} size={96} ringed />
             </View>
           </View>
 
           <Text style={styles.subtext}>
-            You and{" "}
-            <Text style={styles.subtextEmphasis}>{matchedUser.name}</Text> liked
-            each other.
+            You and <Text style={styles.subtextEmphasis}>{matchedUser.name}</Text> liked each other.
           </Text>
 
           <TouchableOpacity
@@ -82,11 +59,7 @@ export default function MatchOverlay({
             <Text style={styles.primaryButtonText}>Send a Message</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            activeOpacity={0.85}
-            onPress={onClose}
-          >
+          <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.85} onPress={onClose}>
             <Text style={styles.secondaryButtonText}>Keep Swiping</Text>
           </TouchableOpacity>
         </View>
@@ -95,44 +68,45 @@ export default function MatchOverlay({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(12, 12, 19, 0.88)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'rgba(12, 12, 19, 0.88)',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 28,
   },
   dialog: {
-    width: "100%",
+    width: '100%',
     maxWidth: 420,
-    backgroundColor: "rgba(18, 18, 26, 0.96)",
+    backgroundColor: colors.card,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: colors.divider,
     paddingHorizontal: 28,
     paddingVertical: 30,
-    alignItems: "center",
-    shadowColor: "#000000",
+    alignItems: 'center',
+    shadowColor: '#000000',
     shadowOpacity: 0.35,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 14 },
     elevation: 10,
   },
   sparkleTopLeft: {
-    position: "absolute",
+    position: 'absolute',
     top: 22,
     left: 26,
     opacity: 0.8,
   },
   sparkleBottomRight: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 24,
     right: 30,
     opacity: 0.55,
   },
   tag: {
-    backgroundColor: "rgba(255, 113, 144, 0.18)",
+    backgroundColor: 'rgba(255, 113, 144, 0.18)',
     borderRadius: 999,
     paddingHorizontal: 13,
     paddingVertical: 6,
@@ -141,16 +115,16 @@ const styles = StyleSheet.create({
   tagText: {
     color: colors.accent,
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 1.2,
   },
   title: {
     fontSize: 32,
-    fontWeight: "800",
+    fontWeight: '800',
     color: colors.accent,
     marginBottom: 24,
-    textAlign: "center",
-    textShadowColor: "rgba(255,107,129,0.6)",
+    textAlign: 'center',
+    textShadowColor: 'rgba(255,107,129,0.6)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
   },
@@ -160,11 +134,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   avatarWrap: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     borderRadius: 999,
     borderWidth: 4,
-    borderColor: "rgba(7, 7, 12, 0.8)",
+    borderColor: colors.card,
   },
   avatarLeft: {
     left: 0,
@@ -176,38 +150,38 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textOnDarkSecondary,
     marginBottom: 26,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 22,
   },
   subtextEmphasis: {
     color: colors.textOnDark,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   primaryButton: {
-    width: "100%",
+    width: '100%',
     backgroundColor: colors.accent,
     borderRadius: 18,
     paddingVertical: 15,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 10,
   },
   primaryButtonText: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   secondaryButton: {
-    width: "100%",
+    width: '100%',
     borderRadius: 18,
     paddingVertical: 15,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.divider,
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
   },
   secondaryButtonText: {
     color: colors.textOnDarkSecondary,
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

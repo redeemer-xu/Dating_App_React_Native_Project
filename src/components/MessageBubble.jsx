@@ -2,11 +2,13 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { reactionEmoji } from "../data/reactions";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 // One chat message: text and/or a photo, plus its reactions underneath.
 // Long press = open the reaction bar. Tap the photo = see it big.
 export default function MessageBubble({ message, onLongPress, onPressImage }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isMe = message.from === "me";
   const hasText = !!message.text;
 
@@ -37,11 +39,7 @@ export default function MessageBubble({ message, onLongPress, onPressImage }) {
 
   return (
     <View style={[styles.row, isMe ? styles.rowMe : styles.rowThem]}>
-      <Pressable
-        onLongPress={onLongPress}
-        delayLongPress={300}
-        style={styles.column}
-      >
+      <Pressable onLongPress={onLongPress} delayLongPress={300} style={styles.column}>
         {isMe ? (
           <LinearGradient
             colors={colors.bubbleOutgoingGradient}
@@ -56,12 +54,7 @@ export default function MessageBubble({ message, onLongPress, onPressImage }) {
         )}
 
         {reactionKeys.length > 0 ? (
-          <View
-            style={[
-              styles.reactionPill,
-              isMe ? styles.pillMe : styles.pillThem,
-            ]}
-          >
+          <View style={[styles.reactionPill, isMe ? styles.pillMe : styles.pillThem]}>
             <Text style={styles.reactionEmoji}>{emojis}</Text>
             {reactionKeys.length > 1 ? (
               <Text style={styles.reactionCount}>{reactionKeys.length}</Text>
@@ -73,7 +66,8 @@ export default function MessageBubble({ message, onLongPress, onPressImage }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   row: {
     marginBottom: 14,
     flexDirection: "row",

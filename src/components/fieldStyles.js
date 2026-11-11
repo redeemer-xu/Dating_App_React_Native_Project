@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '../theme/colors';
-
-export const fieldStyles = StyleSheet.create({
+// Shared look of the text boxes. Call makeFieldStyles(colors) inside a component.
+export const makeFieldStyles = (colors) =>
+  StyleSheet.create({
   wrapper: {
     marginBottom: 20,
   },

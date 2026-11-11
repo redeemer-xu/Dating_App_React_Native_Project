@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 import DiscoveryCard from "./DiscoveryCard";
 
 const RED = "#FF4D4F";
@@ -19,6 +19,8 @@ const GREEN = "#2ECC71";
 // Swipe (or tap) left = pass, swipe (or tap) right = like.
 // HomeScreen gives it a new "key" for every profile, so each card starts fresh.
 export default function SwipeDeck({ profile, onPass, onLike, onOpenProfile }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { width } = useWindowDimensions();
   const threshold = width * 0.25; // how far you must drag before it counts
 
@@ -157,7 +159,8 @@ export default function SwipeDeck({ profile, onPass, onLike, onOpenProfile }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   cardContainer: {
     flex: 1,
     minHeight: 360,

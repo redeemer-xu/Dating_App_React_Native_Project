@@ -1,7 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 export default function PromptPickerCard({
   questions,
@@ -10,6 +10,8 @@ export default function PromptPickerCard({
   answer,
   onChangeAnswer,
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [isPickerVisible, setPickerVisible] = useState(false);
 
   return (
@@ -78,7 +80,8 @@ export default function PromptPickerCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   card: {
     backgroundColor: colors.cardAlt,
     borderRadius: 18,
@@ -125,7 +128,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15,15,17,0.6)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   sheet: {

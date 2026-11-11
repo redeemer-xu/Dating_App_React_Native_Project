@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 const THUMB_SIZE = 22;
 const HIT_SLOP = { top: 14, bottom: 14, left: 8, right: 8 };
 
 export default function Slider({ min, max, value, step = 1, onChange }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [trackWidth, setTrackWidth] = useState(0);
 
   const percentFor = (v) => (max === min ? 0 : (v - min) / (max - min));
@@ -49,7 +51,8 @@ export default function Slider({ min, max, value, step = 1, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   track: {
     height: THUMB_SIZE,
     justifyContent: "center",
