@@ -10,6 +10,8 @@ Everything is saved in soulsync.db (SQLite = a database inside one file).
 Uploaded photos are saved in the uploads folder.
 """
 
+import base64
+import binascii
 import hashlib
 import json
 import sqlite3
@@ -47,7 +49,6 @@ if TEAM_PHOTOS.exists():
 
 # ---------------------------------------------------------------- database
 
-
 def db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -82,106 +83,41 @@ DEFAULT_PROFILE = {
 
 # Our group mates (added the first time the server starts)
 TEAM = [
-    (
-        "redeemer",
-        "redeemer@gmail.com",
-        "123456",
-        {
-            "name": "Redeemer",
-            "age": 22,
-            "gender": "Man",
-            "distance": "1 mile away",
-            "avatar": "/team/redeemer.jpg",
-            "tags": ["Coding", "Coffee", "Gaming"],
-            "bio": "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
-            "prompts": [
-                {
-                    "question": "A perfect Sunday looks like",
-                    "answer": "Zero errors in the terminal and a very long nap.",
-                }
-            ],
-        },
-    ),
-    (
-        "jastin",
-        "jastin@gmail.com",
-        "jastin123",
-        {
-            "name": "Jastin",
-            "age": 23,
-            "gender": "Man",
-            "distance": "2 miles away",
-            "avatar": "/team/jastin.jpg",
-            "tags": ["Tech", "Music", "Late Night"],
-            "bio": "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
-            "prompts": [
-                {
-                    "question": "My most controversial opinion",
-                    "answer": "Tabs are better than spaces, fight me.",
-                }
-            ],
-        },
-    ),
-    (
-        "jennifer",
-        "jennifer@gmail.com",
-        "jennifer123",
-        {
-            "name": "Jennifer",
-            "age": 22,
-            "gender": "Woman",
-            "distance": "3 miles away",
-            "avatar": "/team/barnedo.jpg",
-            "tags": ["Design", "Movies", "Coffee"],
-            "bio": "Professional deadline survivor. Will trade my notes for good conversation.",
-            "prompts": [
-                {
-                    "question": "I'll know it's a match when",
-                    "answer": "You also say 'five more minutes' and mean it.",
-                }
-            ],
-        },
-    ),
-    (
-        "shenaiah",
-        "shenaiah@gmail.com",
-        "shenaiah123",
-        {
-            "name": "Shenaiah",
-            "age": 24,
-            "gender": "Woman",
-            "distance": "4 miles away",
-            "avatar": "/team/sabana.jpg",
-            "tags": ["Travel", "Photography", "Music"],
-            "bio": "Here for the good vibes and the group projects that somehow work out.",
-            "prompts": [
-                {
-                    "question": "The best way to win me over is",
-                    "answer": "Bring snacks to our group meeting.",
-                }
-            ],
-        },
-    ),
-    (
-        "tthrystan",
-        "tthrystan@gmail.com",
-        "tthrystan123",
-        {
-            "name": "Tthrystan",
-            "age": 23,
-            "gender": "Man",
-            "distance": "5 miles away",
-            "avatar": "/team/amomas.jpeg",
-            "tags": ["Gaming", "Tech", "Fitness"],
-            "bio": "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
-            "prompts": [
-                {
-                    "question": "Together we could",
-                    "answer": "Win the group project and the late-night game.",
-                }
-            ],
-        },
-    ),
+    ("redeemer", "redeemer@gmail.com", "123456", {
+        "name": "Redeemer", "age": 22, "gender": "Man", "distance": "1 mile away",
+        "avatar": "/team/redeemer.jpg", "tags": ["Coding", "Coffee", "Gaming"],
+        "bio": "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
+        "prompts": [{"question": "A perfect Sunday looks like",
+                     "answer": "Zero errors in the terminal and a very long nap."}],
+    }),
+    ("jastin", "jastin@gmail.com", "jastin123", {
+        "name": "Jastin", "age": 23, "gender": "Man", "distance": "2 miles away",
+        "avatar": "/team/jastin.jpg", "tags": ["Tech", "Music", "Late Night"],
+        "bio": "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
+        "prompts": [{"question": "My most controversial opinion",
+                     "answer": "Tabs are better than spaces, fight me."}],
+    }),
+    ("jennifer", "jennifer@gmail.com", "jennifer123", {
+        "name": "Jennifer", "age": 22, "gender": "Woman", "distance": "3 miles away",
+        "avatar": "/team/barnedo.jpg", "tags": ["Design", "Movies", "Coffee"],
+        "bio": "Professional deadline survivor. Will trade my notes for good conversation.",
+        "prompts": [{"question": "I'll know it's a match when",
+                     "answer": "You also say 'five more minutes' and mean it."}],
+    }),
+    ("shenaiah", "shenaiah@gmail.com", "shenaiah123", {
+        "name": "Shenaiah", "age": 24, "gender": "Woman", "distance": "4 miles away",
+        "avatar": "/team/sabana.jpg", "tags": ["Travel", "Photography", "Music"],
+        "bio": "Here for the good vibes and the group projects that somehow work out.",
+        "prompts": [{"question": "The best way to win me over is",
+                     "answer": "Bring snacks to our group meeting."}],
+    }),
+    ("tthrystan", "tthrystan@gmail.com", "tthrystan123", {
+        "name": "Tthrystan", "age": 23, "gender": "Man", "distance": "5 miles away",
+        "avatar": "/team/amomas.jpeg", "tags": ["Gaming", "Tech", "Fitness"],
+        "bio": "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
+        "prompts": [{"question": "Together we could",
+                     "answer": "Win the group project and the late-night game."}],
+    }),
 ]
 
 
@@ -216,12 +152,7 @@ def setup_database():
         empty = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
         if empty:
             for username, email, password, fields in TEAM:
-                profile = {
-                    **DEFAULT_PROFILE,
-                    "title": "BSIT Student",
-                    **fields,
-                    "onboarded": True,
-                }
+                profile = {**DEFAULT_PROFILE, "title": "BSIT Student", **fields, "onboarded": True}
                 conn.execute(
                     "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
                     (username, email, hash_password(password), json.dumps(profile)),
@@ -253,7 +184,6 @@ def get_user_row(conn, user_id):
 
 # ---------------------------------------------------------------- request bodies
 
-
 class RegisterBody(BaseModel):
     username: str
     email: str
@@ -276,12 +206,15 @@ class MessageBody(BaseModel):
     text: str
 
 
+class PhotoBody(BaseModel):
+    data: str  # the photo as text: "data:image/jpeg;base64,/9j/4AAQ..."
+
+
 # Fields the app is allowed to change with PATCH /users/{id}
 EDITABLE = set(DEFAULT_PROFILE.keys())
 
 
 # ---------------------------------------------------------------- endpoints
-
 
 @app.get("/")
 def home():
@@ -290,23 +223,15 @@ def home():
 
 # ---- accounts
 
-
 @app.post("/register", status_code=201)
 def register(body: RegisterBody):
     email = body.email.strip().lower()
     with db() as conn:
         if conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
-            raise HTTPException(
-                status_code=409, detail="An account with this email already exists."
-            )
+            raise HTTPException(status_code=409, detail="An account with this email already exists.")
         cursor = conn.execute(
             "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
-            (
-                body.username.strip(),
-                email,
-                hash_password(body.password),
-                json.dumps(DEFAULT_PROFILE),
-            ),
+            (body.username.strip(), email, hash_password(body.password), json.dumps(DEFAULT_PROFILE)),
         )
         return to_json(get_user_row(conn, cursor.lastrowid))
 
@@ -324,7 +249,6 @@ def login(body: LoginBody):
 
 
 # ---- users (CRUD)
-
 
 @app.get("/users")
 def list_users():
@@ -349,9 +273,7 @@ def update_user(user_id: int, changes: dict):
             if key in EDITABLE:
                 profile[key] = value
         profile["photos"] = (profile["photos"] or [])[:5]  # max 5 extra photos
-        conn.execute(
-            "UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id)
-        )
+        conn.execute("UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id))
         return to_json(get_user_row(conn, user_id))
 
 
@@ -366,7 +288,6 @@ def delete_user(user_id: int):
 
 # ---- photos
 
-
 @app.post("/upload", status_code=201)
 async def upload_photo(file: UploadFile = File(...)):
     ext = Path(file.filename or "photo.jpg").suffix.lower() or ".jpg"
@@ -377,49 +298,51 @@ async def upload_photo(file: UploadFile = File(...)):
     return {"url": f"/uploads/{name}"}
 
 
-# ---- likes
+# The app uses this one: the photo comes as base64 text inside normal JSON,
+# so it works the same on Android, iPhone and web.
+@app.post("/upload-base64", status_code=201)
+def upload_photo_base64(body: PhotoBody):
+    header, _, encoded = body.data.partition(",")
+    if not encoded:  # sent without the "data:image/...;base64," part
+        header, encoded = "", body.data
+    try:
+        photo_bytes = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(status_code=400, detail="That photo could not be read.")
+    if not photo_bytes:
+        raise HTTPException(status_code=400, detail="The photo is empty.")
+    ext = ".png" if "png" in header else ".webp" if "webp" in header else ".jpg"
+    name = f"{uuid.uuid4().hex}{ext}"
+    (UPLOADS / name).write_bytes(photo_bytes)
+    return {"url": f"/uploads/{name}"}
 
+
+# ---- likes
 
 @app.get("/users/{user_id}/likes")
 def get_likes(user_id: int):
     """liked = people I liked, likedBy = people who liked me."""
     with db() as conn:
-        liked = [
-            str(r[0])
-            for r in conn.execute(
-                "SELECT to_id FROM likes WHERE from_id = ?", (user_id,)
-            )
-        ]
-        liked_by = [
-            str(r[0])
-            for r in conn.execute(
-                "SELECT from_id FROM likes WHERE to_id = ?", (user_id,)
-            )
-        ]
+        liked = [str(r[0]) for r in conn.execute("SELECT to_id FROM likes WHERE from_id = ?", (user_id,))]
+        liked_by = [str(r[0]) for r in conn.execute("SELECT from_id FROM likes WHERE to_id = ?", (user_id,))]
         return {"liked": liked, "likedBy": liked_by}
 
 
 @app.post("/likes", status_code=201)
 def add_like(body: PairBody):
     with db() as conn:
-        conn.execute(
-            "INSERT OR IGNORE INTO likes (from_id, to_id) VALUES (?, ?)",
-            (body.from_id, body.to_id),
-        )
+        conn.execute("INSERT OR IGNORE INTO likes (from_id, to_id) VALUES (?, ?)", (body.from_id, body.to_id))
         return {"from_id": str(body.from_id), "to_id": str(body.to_id)}
 
 
 @app.delete("/likes/{from_id}/{to_id}")
 def remove_like(from_id: int, to_id: int):
     with db() as conn:
-        conn.execute(
-            "DELETE FROM likes WHERE from_id = ? AND to_id = ?", (from_id, to_id)
-        )
+        conn.execute("DELETE FROM likes WHERE from_id = ? AND to_id = ?", (from_id, to_id))
         return {"deleted": True}
 
 
 # ---- blocks
-
 
 @app.get("/users/{user_id}/blocks")
 def get_blocks(user_id: int):
@@ -435,19 +358,12 @@ def get_blocks(user_id: int):
 @app.post("/blocks", status_code=201)
 def block_user(body: PairBody):
     with db() as conn:
-        conn.execute(
-            "INSERT OR IGNORE INTO blocks (from_id, to_id) VALUES (?, ?)",
-            (body.from_id, body.to_id),
-        )
-        conn.execute(
-            "DELETE FROM likes WHERE from_id = ? AND to_id = ?",
-            (body.from_id, body.to_id),
-        )
+        conn.execute("INSERT OR IGNORE INTO blocks (from_id, to_id) VALUES (?, ?)", (body.from_id, body.to_id))
+        conn.execute("DELETE FROM likes WHERE from_id = ? AND to_id = ?", (body.from_id, body.to_id))
         return {"from_id": str(body.from_id), "to_id": str(body.to_id)}
 
 
 # ---- messages
-
 
 def message_json(row) -> dict:
     created = datetime.fromisoformat(row["created_at"])
@@ -483,16 +399,9 @@ def send_message(body: MessageBody):
         get_user_row(conn, body.receiver_id)
         cursor = conn.execute(
             "INSERT INTO messages (sender_id, receiver_id, text, created_at) VALUES (?, ?, ?, ?)",
-            (
-                body.sender_id,
-                body.receiver_id,
-                text,
-                datetime.now().isoformat(timespec="seconds"),
-            ),
+            (body.sender_id, body.receiver_id, text, datetime.now().isoformat(timespec="seconds")),
         )
-        row = conn.execute(
-            "SELECT * FROM messages WHERE id = ?", (cursor.lastrowid,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM messages WHERE id = ?", (cursor.lastrowid,)).fetchone()
         return message_json(row)
 
 
@@ -517,8 +426,6 @@ def get_inbox(user_id: int):
         ).fetchall()
         inbox = []
         for row in rows:
-            other = (
-                row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
-            )
+            other = row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
             inbox.append({"otherId": str(other), "lastMessage": message_json(row)})
         return inbox
