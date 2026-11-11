@@ -1,8 +1,10 @@
 import { ArrowLeft, Sparkles } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 export default function OnboardingHeader({ step, showLogo = false, onBack }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={onBack}>
@@ -23,7 +25,8 @@ export default function OnboardingHeader({ step, showLogo = false, onBack }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -33,10 +33,12 @@ import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 import { pickImageFromGallery, takePhotoWithCamera } from "../utils/pickImage";
 
 export default function ChatScreen() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { id } = useLocalSearchParams(); // the other person's profile id
   const { currentUser } = useAuth();
   const { getProfile } = useProfiles();
@@ -152,21 +154,17 @@ export default function ChatScreen() {
 
   const handleUnmatch = () => {
     setMenuOpen(false);
-    Alert.alert(
-      "Unmatch with " + other.name + "?",
-      "They will be removed from your matches.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Unmatch",
-          style: "destructive",
-          onPress: () => {
-            removeMatch(id);
-            router.back();
-          },
+    Alert.alert("Unmatch with " + other.name + "?", "They will be removed from your matches.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Unmatch",
+        style: "destructive",
+        onPress: () => {
+          removeMatch(id);
+          router.back();
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const handleBlockReport = () => {
@@ -180,10 +178,7 @@ export default function ChatScreen() {
           text: "Report",
           onPress: () => {
             blockUser(id);
-            Alert.alert(
-              "Thanks for reporting",
-              "We blocked this user for you.",
-            );
+            Alert.alert("Thanks for reporting", "We blocked this user for you.");
             router.back();
           },
         },
@@ -206,10 +201,7 @@ export default function ChatScreen() {
           <ChevronLeft size={26} color={colors.textOnDark} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.headerCenter}
-          onPress={handleViewProfile}
-        >
+        <TouchableOpacity style={styles.headerCenter} onPress={handleViewProfile}>
           <Avatar uri={other.avatar} name={other.name} size={36} />
           <View style={styles.headerTextGroup}>
             <Text style={styles.headerName}>{other.name}</Text>
@@ -228,32 +220,20 @@ export default function ChatScreen() {
         animationType="fade"
         onRequestClose={() => setMenuOpen(false)}
       >
-        <Pressable
-          style={styles.menuBackdrop}
-          onPress={() => setMenuOpen(false)}
-        >
+        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
           <SafeAreaView edges={["top"]}>
             <View style={styles.menu}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={handleViewProfile}
-              >
+              <TouchableOpacity style={styles.menuItem} onPress={handleViewProfile}>
                 <User size={18} color={colors.textOnDark} />
                 <Text style={styles.menuText}>View profile</Text>
               </TouchableOpacity>
               {isMatch ? (
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={handleUnmatch}
-                >
+                <TouchableOpacity style={styles.menuItem} onPress={handleUnmatch}>
                   <HeartOff size={18} color={colors.textOnDark} />
                   <Text style={styles.menuText}>Unmatch</Text>
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={handleBlockReport}
-              >
+              <TouchableOpacity style={styles.menuItem} onPress={handleBlockReport}>
                 <Ban size={18} color={colors.error} />
                 <Text style={[styles.menuText, { color: colors.error }]}>
                   Block / Report
@@ -285,9 +265,7 @@ export default function ChatScreen() {
             </View>
           }
           ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              No messages yet. Send the first one!
-            </Text>
+            <Text style={styles.emptyText}>No messages yet. Send the first one!</Text>
           }
           renderItem={({ item }) => (
             <MessageBubble
@@ -302,11 +280,7 @@ export default function ChatScreen() {
         {photo ? (
           <View style={styles.previewRow}>
             <View>
-              <Image
-                source={{ uri: photo }}
-                style={styles.preview}
-                contentFit="cover"
-              />
+              <Image source={{ uri: photo }} style={styles.preview} contentFit="cover" />
               <TouchableOpacity
                 style={styles.previewRemove}
                 onPress={() => setPhoto(null)}
@@ -383,11 +357,7 @@ export default function ChatScreen() {
       >
         <View style={styles.viewer}>
           {bigPhoto ? (
-            <Image
-              source={{ uri: bigPhoto }}
-              style={styles.viewerImage}
-              contentFit="contain"
-            />
+            <Image source={{ uri: bigPhoto }} style={styles.viewerImage} contentFit="contain" />
           ) : null}
           <SafeAreaView style={styles.viewerClose} edges={["top"]}>
             <TouchableOpacity onPress={() => setBigPhoto(null)} hitSlop={12}>
@@ -400,7 +370,8 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -464,7 +435,7 @@ const styles = StyleSheet.create({
   },
   menuBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
+    backgroundColor: colors.overlay,
   },
   menu: {
     alignSelf: "flex-end",

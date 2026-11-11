@@ -1,7 +1,9 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 export default function PillTabSwitcher({ options, activeOption, onChange }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.track}>
       {options.map((option) => {
@@ -21,7 +23,8 @@ export default function PillTabSwitcher({ options, activeOption, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   track: {
     flexDirection: 'row',
     backgroundColor: colors.card,

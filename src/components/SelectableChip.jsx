@@ -1,7 +1,9 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 export default function SelectableChip({ label, selected, onPress }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -13,7 +15,8 @@ export default function SelectableChip({ label, selected, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   chip: {
     borderRadius: 999,
     paddingHorizontal: 16,

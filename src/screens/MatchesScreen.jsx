@@ -15,14 +15,15 @@ import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 export default function MatchesScreen() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { currentUser } = useAuth();
   const { getProfile, refreshProfiles } = useProfiles();
   const { getInbox, loadInbox, chatError } = useChat();
-  const { matchIds, removeMatch, isHidden, admirerIds, refreshMatches } =
-    useMatches();
+  const { matchIds, removeMatch, isHidden, admirerIds, refreshMatches } = useMatches();
   const me = currentUser?.id;
 
   // While this tab is open: get the newest messages, likes and profiles,
@@ -166,7 +167,8 @@ export default function MatchesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,

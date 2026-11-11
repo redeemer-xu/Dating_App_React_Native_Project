@@ -19,21 +19,21 @@ import SelectableChip from "../components/SelectableChip";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { interestOptions, promptQuestions } from "../data/mockData";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 import { pickImageFromGallery } from "../utils/pickImage";
 
 const MAX_BIO_LENGTH = 150;
 
 export default function EditProfileScreen() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { currentUser } = useAuth();
   const { saveProfile } = useProfiles();
 
   // Start the inputs with my current profile (from the server)
   const [photo, setPhoto] = useState(currentUser?.avatar ?? null);
   const [extraPhotos, setExtraPhotos] = useState(currentUser?.photos ?? []); // up to 5
-  const [name, setName] = useState(
-    currentUser?.name ?? currentUser?.username ?? "",
-  );
+  const [name, setName] = useState(currentUser?.name ?? currentUser?.username ?? "");
   const [bio, setBio] = useState(currentUser?.bio ?? "");
   const [interests, setInterests] = useState(currentUser?.tags ?? []);
   const [promptQuestion, setPromptQuestion] = useState(
@@ -221,7 +221,8 @@ export default function EditProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   morePhotos: {
     marginBottom: 20,
   },

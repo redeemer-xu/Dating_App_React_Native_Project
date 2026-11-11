@@ -7,10 +7,13 @@ import FormInput from "../components/FormInput";
 import GradientBackground from "../components/GradientBackground";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/AuthContext";
-import { authStyles } from "../theme/authStyles";
+import { useTheme } from "../context/ThemeContext";
+import { makeAuthStyles } from "../theme/authStyles";
 import { isValidEmail, isValidPassword } from "../utils/validation";
 
 export default function LoginScreen() {
+  const { colors } = useTheme();
+  const authStyles = makeAuthStyles(colors);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});

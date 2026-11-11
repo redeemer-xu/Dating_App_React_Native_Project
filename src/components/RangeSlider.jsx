@@ -1,12 +1,14 @@
 import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 const THUMB_SIZE = 22;
 const MIN_GAP = 1;
 const HIT_SLOP = { top: 14, bottom: 14, left: 8, right: 8 };
 
 export default function RangeSlider({ min, max, value, onChange }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [trackWidth, setTrackWidth] = useState(0);
   const activeThumb = useRef("low"); // which circle is being dragged (only used inside touch handlers)
   const [low, high] = value;
@@ -83,7 +85,8 @@ export default function RangeSlider({ min, max, value, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   track: {
     height: THUMB_SIZE,
     justifyContent: "center",

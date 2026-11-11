@@ -15,9 +15,11 @@ import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 export default function ProfileDetailScreen() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { id } = useLocalSearchParams();
   const { getProfile } = useProfiles();
   const { isHidden } = useMatches();
@@ -46,12 +48,12 @@ export default function ProfileDetailScreen() {
             dotsStyle={{ top: 64 }}
           />
           <LinearGradient
-            colors={["rgba(15,15,17,0.1)", "transparent"]}
+            colors={["rgba(15,15,17,0.35)", "transparent"]}
             style={styles.heroTopFade}
             pointerEvents="none"
           />
           <LinearGradient
-            colors={["transparent", "rgba(15,15,17,0.95)"]}
+            colors={["transparent", colors.photoFade]}
             locations={[0.4, 1]}
             style={styles.heroBottomFade}
             pointerEvents="none"
@@ -73,7 +75,7 @@ export default function ProfileDetailScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <ChevronLeft size={22} color={colors.textOnDark} />
+              <ChevronLeft size={22} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.heroHeaderTitle}>User Detail</Text>
             <View style={{ width: 36 }} />
@@ -119,7 +121,8 @@ export default function ProfileDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
   heroHeaderTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.textOnDark,
+    color: "#FFFFFF", // on top of the photo
   },
   body: {
     paddingHorizontal: 20,

@@ -1,34 +1,36 @@
-import { router } from "expo-router";
-import { Search } from "lucide-react-native";
-import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from 'expo-router';
+import { Search } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Button from "../components/Button";
-import OnboardingHeader from "../components/OnboardingHeader";
-import PromptPickerCard from "../components/PromptPickerCard";
-import SelectableChip from "../components/SelectableChip";
-import { useAuth } from "../context/AuthContext";
-import { useOnboarding } from "../context/OnboardingContext";
-import { useProfiles } from "../context/ProfilesContext";
-import { interestOptions, promptQuestions } from "../data/mockData";
-import { colors } from "../theme/colors";
-import { getAge, parseBirthday } from "../utils/validation";
+import Button from '../components/Button';
+import OnboardingHeader from '../components/OnboardingHeader';
+import PromptPickerCard from '../components/PromptPickerCard';
+import SelectableChip from '../components/SelectableChip';
+import { useAuth } from '../context/AuthContext';
+import { useOnboarding } from '../context/OnboardingContext';
+import { useProfiles } from '../context/ProfilesContext';
+import { interestOptions, promptQuestions } from '../data/mockData';
+import { useTheme } from '../context/ThemeContext';
+import { getAge, parseBirthday } from '../utils/validation';
 
 const MIN_INTERESTS = 3;
 
 export default function OnboardingStepThree() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data, update, reset } = useOnboarding();
   const { currentUser } = useAuth();
   const { saveProfile } = useProfiles();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false); // uploading photos + saving
 
   const filteredInterests = useMemo(() => {
     if (!search.trim()) return interestOptions;
     return interestOptions.filter((option) =>
-      option.toLowerCase().includes(search.trim().toLowerCase()),
+      option.toLowerCase().includes(search.trim().toLowerCase())
     );
   }, [search]);
 
@@ -49,12 +51,11 @@ export default function OnboardingStepThree() {
     }
 
     if (!data.promptQuestion) {
-      nextErrors.promptQuestion = "Please choose a conversation prompt.";
+      nextErrors.promptQuestion = 'Please choose a conversation prompt.';
     }
 
     if (!data.promptAnswer.trim()) {
-      nextErrors.promptAnswer =
-        "Please answer the selected prompt before continuing.";
+      nextErrors.promptAnswer = 'Please answer the selected prompt before continuing.';
     }
 
     setErrors(nextErrors);
@@ -75,13 +76,11 @@ export default function OnboardingStepThree() {
         avatar: data.photo, // null = no photo, the first letter is shown
         photos: data.extraPhotos,
         tags: data.interests,
-        prompts: [
-          { question: data.promptQuestion, answer: data.promptAnswer.trim() },
-        ],
+        prompts: [{ question: data.promptQuestion, answer: data.promptAnswer.trim() }],
         onboarded: true,
       });
       reset();
-      router.replace("/home");
+      router.replace('/home');
     } catch (err) {
       setErrors({ save: err.message });
     } finally {
@@ -90,22 +89,16 @@ export default function OnboardingStepThree() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <OnboardingHeader step={3} onBack={() => router.back()} />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.heading}>What makes you, you?</Text>
 
         <Text style={styles.sectionLabel}>
-          Interests{" "}
-          {data.interests.length > 0 && `(${data.interests.length} selected)`}
+          Interests {data.interests.length > 0 && `(${data.interests.length} selected)`}
         </Text>
-        {errors.interests ? (
-          <Text style={styles.errorText}>{errors.interests}</Text>
-        ) : null}
+        {errors.interests ? <Text style={styles.errorText}>{errors.interests}</Text> : null}
 
         <View style={styles.searchBox}>
           <Search size={16} color={colors.textOnDarkMuted} />
@@ -129,9 +122,7 @@ export default function OnboardingStepThree() {
           ))}
         </View>
 
-        <Text
-          style={[styles.sectionLabel, { marginTop: 28, marginBottom: 12 }]}
-        >
+        <Text style={[styles.sectionLabel, { marginTop: 28, marginBottom: 12 }]}>
           Conversation Prompt
         </Text>
         {errors.promptQuestion || errors.promptAnswer ? (
@@ -149,15 +140,9 @@ export default function OnboardingStepThree() {
       </ScrollView>
 
       <View style={styles.footer}>
-        {errors.save ? (
-          <Text style={styles.errorText}>{errors.save}</Text>
-        ) : null}
+        {errors.save ? <Text style={styles.errorText}>{errors.save}</Text> : null}
         <Button
-          title={
-            saving
-              ? "Saving your profile..."
-              : "Complete Profile & Start Syncing"
-          }
+          title={saving ? 'Saving your profile...' : 'Complete Profile & Start Syncing'}
           variant="accent"
           glow
           disabled={saving}
@@ -168,7 +153,8 @@ export default function OnboardingStepThree() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -179,19 +165,19 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 22,
-    fontWeight: "800",
+    fontWeight: '800',
     color: colors.textOnDark,
     marginBottom: 20,
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     color: colors.textOnDarkSecondary,
     marginBottom: 12,
   },
   searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
     height: 46,
     borderRadius: 14,
@@ -207,8 +193,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   chipGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
   },
   footer: {
@@ -219,7 +205,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.error,
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 12,
   },
 });

@@ -1,9 +1,10 @@
 import { Redirect, Tabs } from "expo-router";
 import { Flame, Heart, User } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
-import { colors } from "../../theme/colors";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function TabLayout() {
+  const { colors } = useTheme();
   const { currentUser } = useAuth();
 
   if (!currentUser) {

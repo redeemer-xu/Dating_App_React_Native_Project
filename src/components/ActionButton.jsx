@@ -1,5 +1,5 @@
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * variant: 'pass' | 'like' | 'chat'
@@ -7,6 +7,8 @@ import { colors } from '../theme/colors';
  * outlined circles so the like action stays the clear visual priority.
  */
 export default function ActionButton({ variant = 'pass', size = 56, onPress, children }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isLike = variant === 'like';
 
   return (
@@ -24,7 +26,8 @@ export default function ActionButton({ variant = 'pass', size = 56, onPress, chi
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,13 +1,15 @@
-import { StyleSheet, Text, View } from "react-native";
-import { colors } from "../theme/colors";
-import { pickImageFromGallery } from "../utils/pickImage";
-import PhotoGridSlot from "./PhotoGridSlot";
+import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { pickImageFromGallery } from '../utils/pickImage';
+import PhotoGridSlot from './PhotoGridSlot';
 
 export const MAX_EXTRA_PHOTOS = 5;
 
 // Up to 5 extra photos (besides the profile picture).
 // photos = list of photo uris, onChange = gets the new list.
 export default function ExtraPhotosGrid({ photos, onChange, onError }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   // filled boxes first, then empty "+" boxes until there are 5
   const slots = [
     ...photos,
@@ -19,7 +21,7 @@ export default function ExtraPhotosGrid({ photos, onChange, onError }) {
       const uri = await pickImageFromGallery();
       if (uri) onChange([...photos, uri].slice(0, MAX_EXTRA_PHOTOS));
     } catch {
-      onError?.("Could not open the gallery. Please try again.");
+      onError?.('Could not open the gallery. Please try again.');
     }
   };
 
@@ -47,20 +49,21 @@ export default function ExtraPhotosGrid({ photos, onChange, onError }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   label: {
     color: colors.textOnDark,
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 10,
   },
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
   },
   cell: {
-    width: "30%", // 3 boxes per row
-    flexDirection: "row",
+    width: '30%', // 3 boxes per row
+    flexDirection: 'row',
   },
 });

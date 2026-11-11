@@ -21,9 +21,11 @@ import { useAuth } from "../context/AuthContext";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { defaultDiscoveryFilters } from "../data/mockData";
-import { colors } from "../theme/colors";
+import { useTheme } from "../context/ThemeContext";
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { currentUser: user } = useAuth();
   const { addMatch, isHidden, matchIds, refreshMatches } = useMatches();
   const { profiles, loading, error, refreshProfiles } = useProfiles();
@@ -160,11 +162,7 @@ export default function HomeScreen() {
             <Text style={styles.emptyTitle}>Can&apos;t load profiles</Text>
             <Text style={styles.emptyText}>{error}</Text>
             <View style={styles.startOverWrap}>
-              <Button
-                title="Try again"
-                variant="accent"
-                onPress={refreshProfiles}
-              />
+              <Button title="Try again" variant="accent" onPress={refreshProfiles} />
             </View>
           </View>
         ) : loading && profiles.length === 0 ? (
@@ -239,7 +237,8 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
