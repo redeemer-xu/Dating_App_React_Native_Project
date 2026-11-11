@@ -1,8 +1,16 @@
 import { router, useFocusEffect } from "expo-router";
-import { Flame, SlidersHorizontal } from "lucide-react-native";
+import { Flame, Search, SlidersHorizontal, X } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Avatar from "../components/Avatar";
 import Button from "../components/Button";
 import DiscoverySettingsModal from "../components/DiscoverySettingsModal";
 import GradientBackground from "../components/GradientBackground";
@@ -33,6 +41,17 @@ export default function HomeScreen() {
   const [filters, setFilters] = useState(defaultDiscoveryFilters);
   const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
+  const [search, setSearch] = useState("");
+
+  // ---- search bar: find people by name or interest (e.g. "coffee") ----
+  const query = search.trim().toLowerCase();
+  const searchResults = profiles.filter((p) => {
+    if (!query) return false;
+    if (p.id === user?.id || isHidden(p.id)) return false;
+    const name = (p.name ?? "").toLowerCase();
+    const tags = (p.tags ?? []).map((tag) => tag.toLowerCase());
+    return name.includes(query) || tags.some((tag) => tag.includes(query));
+  });
   // 1) people who fit the filters
   const matchingFilters = profiles.filter((p) => {
     if (p.id === user?.id) return false; // never show yourself
@@ -84,7 +103,58 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {error && profiles.length === 0 ? (
+        <View style={styles.searchBox}>
+          <Search size={18} color={colors.textOnDarkMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name or interest"
+            placeholderTextColor={colors.textOnDarkMuted}
+            value={search}
+            onChangeText={setSearch}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch("")} hitSlop={10}>
+              <X size={18} color={colors.textOnDarkMuted} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {query ? (
+          // typing in the search bar = show the results instead of the cards
+          <ScrollView
+            style={styles.results}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.resultsContent}
+          >
+            {searchResults.length === 0 ? (
+              <Text style={styles.noResults}>
+                No one found for &quot;{search.trim()}&quot;
+              </Text>
+            ) : null}
+            {searchResults.map((p) => (
+              <TouchableOpacity
+                key={p.id}
+                style={styles.resultRow}
+                activeOpacity={0.8}
+                onPress={() => router.push("/profile/" + p.id)}
+              >
+                <Avatar uri={p.avatar} name={p.name} size={50} />
+                <View style={styles.resultText}>
+                  <Text style={styles.resultName}>
+                    {p.name}
+                    {p.age ? ", " + p.age : ""}
+                  </Text>
+                  <Text style={styles.resultTags} numberOfLines={1}>
+                    {(p.tags ?? []).join(" · ") || p.title}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        ) : error && profiles.length === 0 ? (
           // the server could not be reached
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>Can&apos;t load profiles</Text>
@@ -108,7 +178,7 @@ export default function HomeScreen() {
             profile={profile}
             onPass={handlePass}
             onLike={handleLike}
-            onOpenProfile={() => router.push(`/profile/${profile.id}`)}
+            onOpenProfile={() => router.push("/profile/" + profile.id)}
           />
         ) : (
           <View style={styles.emptyState}>
@@ -141,12 +211,14 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={styles.statusRow}>
-          <Flame size={15} color={colors.accent} fill={colors.accent} />
-          <Text style={styles.statusText}>
-            Your daily discoveries are ready
-          </Text>
-        </View>
+        {query ? null : (
+          <View style={styles.statusRow}>
+            <Flame size={15} color={colors.accent} fill={colors.accent} />
+            <Text style={styles.statusText}>
+              Your daily discoveries are ready
+            </Text>
+          </View>
+        )}
 
         <DiscoverySettingsModal
           isVisible={isSettingsVisible}
@@ -168,6 +240,57 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    paddingHorizontal: 14,
+    height: 46,
+    marginBottom: 14,
+  },
+  searchInput: {
+    flex: 1,
+    color: colors.textOnDark,
+    fontSize: 15,
+    paddingVertical: 0,
+  },
+  results: {
+    flex: 1,
+  },
+  resultsContent: {
+    paddingBottom: 20,
+  },
+  noResults: {
+    color: colors.textOnDarkSecondary,
+    fontSize: 15,
+    textAlign: "center",
+    marginTop: 30,
+  },
+  resultRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+  },
+  resultText: {
+    flex: 1,
+  },
+  resultName: {
+    color: colors.textOnDark,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  resultTags: {
+    color: colors.textOnDarkSecondary,
+    fontSize: 13,
+    marginTop: 2,
+  },
   emptyState: {
     flex: 1,
     alignItems: "center",

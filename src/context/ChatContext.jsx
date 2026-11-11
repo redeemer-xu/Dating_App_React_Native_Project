@@ -3,6 +3,8 @@ import {
   apiDeleteMessage,
   apiGetInbox,
   apiGetMessages,
+  apiReact,
+  apiRemoveReaction,
   apiSendMessage,
 } from "../api";
 import { useAuth } from "./AuthContext";
@@ -52,9 +54,21 @@ export function ChatProvider({ children }) {
     }
   };
 
-  // POST /messages
-  const sendMessage = async (otherId, text) => {
-    const message = await apiSendMessage(me, otherId, text);
+  // Change one message in a conversation (used for reactions)
+  const replaceMessage = (otherId, messageId, update) =>
+    change((c) => ({
+      ...c,
+      conversations: {
+        ...c.conversations,
+        [otherId]: (c.conversations[otherId] ?? []).map((m) =>
+          m.id === messageId ? update(m) : m,
+        ),
+      },
+    }));
+
+  // POST /messages (text and/or a photo)
+  const sendMessage = async (otherId, text, photo = null) => {
+    const message = await apiSendMessage(me, otherId, text, photo);
     change((c) => ({
       ...c,
       error: null,
@@ -84,6 +98,27 @@ export function ChatProvider({ children }) {
     }
   };
 
+  // React to a message. Picking the same reaction again removes it.
+  const reactToMessage = async (otherId, message, reaction) => {
+    const removing = message.reactions?.[me] === reaction;
+    // show it right away (optimistic), then tell the server
+    replaceMessage(otherId, message.id, (m) => {
+      const reactions = { ...(m.reactions ?? {}) };
+      if (removing) delete reactions[me];
+      else reactions[me] = reaction;
+      return { ...m, reactions };
+    });
+    try {
+      const saved = removing
+        ? await apiRemoveReaction(message.id, me)
+        : await apiReact(message.id, me, reaction);
+      replaceMessage(otherId, message.id, () => saved);
+    } catch (err) {
+      change((c) => ({ ...c, error: err.message }));
+      loadConversation(otherId); // undo: get the real data again
+    }
+  };
+
   const getMessages = (otherId) => mine.conversations[otherId] ?? [];
   const getInbox = () => mine.inbox;
 
@@ -96,6 +131,7 @@ export function ChatProvider({ children }) {
         loadInbox,
         sendMessage,
         deleteMessage,
+        reactToMessage,
         chatError: mine.error,
       }}
     >
