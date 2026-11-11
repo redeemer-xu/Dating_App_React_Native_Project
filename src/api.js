@@ -13,9 +13,9 @@ function findServer() {
   if (MANUAL_API_URL) return MANUAL_API_URL;
   // hostUri looks like "192.168.43.120:8081" = the laptop running Expo
   const expoHost = Constants.expoConfig?.hostUri?.split(":")[0];
-  if (expoHost) return `http://${expoHost}:8000`;
+  if (expoHost) return "http://" + expoHost + ":8000";
   if (Platform.OS === "web" && typeof window !== "undefined") {
-    return `http://${window.location.hostname}:8000`;
+    return "http://" + window.location.hostname + ":8000";
   }
   return "http://10.0.2.2:8000"; // Android emulator -> the laptop
 }
@@ -59,36 +59,33 @@ async function request(path, { method = "GET", body } = {}) {
   } catch {
     // no answer at all = the server is off, or the phone is on another WiFi
     throw new Error(
-      `Can't reach the server at ${API_URL}. Is it running, and are you on the same WiFi/hotspot?`,
+      "Can't reach the server at " + API_URL + ". Is it running, and are you on the same WiFi/hotspot?",
     );
   }
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data?.detail ?? `Request failed (${response.status})`);
+    throw new Error(data?.detail ?? "Request failed (" + response.status + ")");
   }
   return data;
 }
 
-// ---- photo upload (POST with a file instead of JSON)
+// ---- photo upload
+// Expo's fetch can't send a phone file with FormData ({ uri, name, type }),
+// so we send the photo as base64 text inside normal JSON instead.
 async function uploadPhoto(uri) {
-  const form = new FormData();
-  if (Platform.OS === "web") {
+  let data = uri;
+  if (!uri.startsWith("data:")) {
+    // web: turn a blob:/file link into "data:image/...;base64,..."
     const blob = await (await fetch(uri)).blob();
-    form.append("file", blob, "photo.jpg");
-  } else {
-    form.append("file", { uri, name: "photo.jpg", type: "image/jpeg" });
+    data = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Could not read the photo. Please pick it again."));
+      reader.readAsDataURL(blob);
+    });
   }
-  let response;
-  try {
-    response = await fetch(API_URL + "/upload", { method: "POST", body: form });
-  } catch {
-    throw new Error(
-      `Can't reach the server at ${API_URL} to upload the photo.`,
-    );
-  }
-  if (!response.ok) throw new Error(`Photo upload failed (${response.status})`);
-  const data = await response.json();
-  return data.url; // "/uploads/abc.jpg"
+  const result = await request("/upload-base64", { method: "POST", body: { data } });
+  return result.url; // "/uploads/abc.jpg"
 }
 
 // A photo that is only on this phone (file://, blob:) gets uploaded first.
@@ -103,18 +100,13 @@ async function preparePhoto(uri) {
 // ================================================================ ACCOUNTS
 // POST /login
 export async function apiLogin(email, password) {
-  return fixUser(
-    await request("/login", { method: "POST", body: { email, password } }),
-  );
+  return fixUser(await request("/login", { method: "POST", body: { email, password } }));
 }
 
 // POST /register
 export async function apiRegister(username, email, password) {
   return fixUser(
-    await request("/register", {
-      method: "POST",
-      body: { username, email, password },
-    }),
+    await request("/register", { method: "POST", body: { username, email, password } }),
   );
 }
 
@@ -126,7 +118,7 @@ export async function apiGetUsers() {
 
 // GET /users/:id
 export async function apiGetUser(id) {
-  return fixUser(await request(`/users/${id}`));
+  return fixUser(await request("/users/" + id));
 }
 
 // PATCH /users/:id = change only the fields we send.
@@ -138,18 +130,18 @@ export async function apiUpdateUser(id, changes) {
     body.photos = await Promise.all((body.photos ?? []).map(preparePhoto));
   }
   delete body.images; // the server builds images from avatar + photos
-  return fixUser(await request(`/users/${id}`, { method: "PATCH", body }));
+  return fixUser(await request("/users/" + id, { method: "PATCH", body }));
 }
 
 // DELETE /users/:id = delete account
 export async function apiDeleteUser(id) {
-  return request(`/users/${id}`, { method: "DELETE" });
+  return request("/users/" + id, { method: "DELETE" });
 }
 
 // ================================================================ LIKES & BLOCKS
 // GET /users/:id/likes -> { liked: [...], likedBy: [...] }
 export function apiGetLikes(id) {
-  return request(`/users/${id}/likes`);
+  return request("/users/" + id + "/likes");
 }
 
 // POST /likes
@@ -162,12 +154,12 @@ export function apiLike(fromId, toId) {
 
 // DELETE /likes/:from/:to
 export function apiUnlike(fromId, toId) {
-  return request(`/likes/${fromId}/${toId}`, { method: "DELETE" });
+  return request("/likes/" + fromId + "/" + toId, { method: "DELETE" });
 }
 
 // GET /users/:id/blocks -> { hidden: [...] }
 export function apiGetBlocks(id) {
-  return request(`/users/${id}/blocks`);
+  return request("/users/" + id + "/blocks");
 }
 
 // POST /blocks
@@ -181,7 +173,7 @@ export function apiBlock(fromId, toId) {
 // ================================================================ MESSAGES
 // GET /messages?user_a=..&user_b=.. = one conversation
 export function apiGetMessages(myId, otherId) {
-  return request(`/messages?user_a=${myId}&user_b=${otherId}`);
+  return request("/messages?user_a=" + myId + "&user_b=" + otherId);
 }
 
 // POST /messages
@@ -194,10 +186,10 @@ export function apiSendMessage(myId, otherId, text) {
 
 // DELETE /messages/:id
 export function apiDeleteMessage(messageId) {
-  return request(`/messages/${messageId}`, { method: "DELETE" });
+  return request("/messages/" + messageId, { method: "DELETE" });
 }
 
 // GET /users/:id/inbox = my conversations, newest first
 export function apiGetInbox(id) {
-  return request(`/users/${id}/inbox`);
+  return request("/users/" + id + "/inbox");
 }
