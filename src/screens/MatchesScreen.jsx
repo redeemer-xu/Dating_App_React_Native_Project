@@ -56,7 +56,7 @@ export default function MatchesScreen() {
 
   const confirmUnmatch = (spark) => {
     Alert.alert(
-      `Unmatch with ${spark.name}?`,
+      "Unmatch with " + spark.name + "?",
       "They will be removed from your matches.",
       [
         { text: "Cancel", style: "cancel" },
@@ -96,7 +96,7 @@ export default function MatchesScreen() {
             {sparks.map((spark) => (
               <TouchableOpacity
                 key={spark.id}
-                onPress={() => router.push(`/chat/${spark.id}`)}
+                onPress={() => router.push("/chat/" + spark.id)}
                 onLongPress={() => confirmUnmatch(spark)}
               >
                 <Avatar uri={spark.avatar} name={spark.name} size={62} ringed />
@@ -115,14 +115,14 @@ export default function MatchesScreen() {
             <TouchableOpacity
               key={otherId}
               style={styles.inboxRow}
-              onPress={() => router.push(`/chat/${otherId}`)}
+              onPress={() => router.push("/chat/" + otherId)}
             >
               <Avatar uri={profile.avatar} name={profile.name} size={52} />
               <View style={styles.inboxText}>
                 <Text style={styles.inboxName}>{profile.name}</Text>
                 <Text style={styles.inboxPreview} numberOfLines={1}>
                   {lastMessage.senderId === me ? "You: " : ""}
-                  {lastMessage.text}
+                  {lastMessage.text || "📷 Photo"}
                 </Text>
               </View>
               <Text style={styles.inboxTime}>{lastMessage.time}</Text>
@@ -136,7 +136,7 @@ export default function MatchesScreen() {
                 ? ""
                 : likedYou.length === 1
                   ? "1 person likes you"
-                  : `${likedYou.length} people like you`}
+                  : likedYou.length + " people like you"}
             </Text>
           </View>
           {likedYou.length === 0 ? (
@@ -152,7 +152,7 @@ export default function MatchesScreen() {
               {likedYou.map((person) => (
                 <TouchableOpacity
                   key={person.id}
-                  onPress={() => router.push(`/profile/${person.id}`)}
+                  onPress={() => router.push("/profile/" + person.id)}
                 >
                   <Avatar uri={person.avatar} name={person.name} size={62} />
                   <Text style={styles.sparkName}>{person.name}</Text>

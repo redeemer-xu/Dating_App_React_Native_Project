@@ -49,6 +49,7 @@ if TEAM_PHOTOS.exists():
 
 # ---------------------------------------------------------------- database
 
+
 def db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -83,41 +84,106 @@ DEFAULT_PROFILE = {
 
 # Our group mates (added the first time the server starts)
 TEAM = [
-    ("redeemer", "redeemer@gmail.com", "123456", {
-        "name": "Redeemer", "age": 22, "gender": "Man", "distance": "1 mile away",
-        "avatar": "/team/redeemer.jpg", "tags": ["Coding", "Coffee", "Gaming"],
-        "bio": "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
-        "prompts": [{"question": "A perfect Sunday looks like",
-                     "answer": "Zero errors in the terminal and a very long nap."}],
-    }),
-    ("jastin", "jastin@gmail.com", "jastin123", {
-        "name": "Jastin", "age": 23, "gender": "Man", "distance": "2 miles away",
-        "avatar": "/team/jastin.jpg", "tags": ["Tech", "Music", "Late Night"],
-        "bio": "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
-        "prompts": [{"question": "My most controversial opinion",
-                     "answer": "Tabs are better than spaces, fight me."}],
-    }),
-    ("jennifer", "jennifer@gmail.com", "jennifer123", {
-        "name": "Jennifer", "age": 22, "gender": "Woman", "distance": "3 miles away",
-        "avatar": "/team/barnedo.jpg", "tags": ["Design", "Movies", "Coffee"],
-        "bio": "Professional deadline survivor. Will trade my notes for good conversation.",
-        "prompts": [{"question": "I'll know it's a match when",
-                     "answer": "You also say 'five more minutes' and mean it."}],
-    }),
-    ("shenaiah", "shenaiah@gmail.com", "shenaiah123", {
-        "name": "Shenaiah", "age": 24, "gender": "Woman", "distance": "4 miles away",
-        "avatar": "/team/sabana.jpg", "tags": ["Travel", "Photography", "Music"],
-        "bio": "Here for the good vibes and the group projects that somehow work out.",
-        "prompts": [{"question": "The best way to win me over is",
-                     "answer": "Bring snacks to our group meeting."}],
-    }),
-    ("tthrystan", "tthrystan@gmail.com", "tthrystan123", {
-        "name": "Tthrystan", "age": 23, "gender": "Man", "distance": "5 miles away",
-        "avatar": "/team/amomas.jpeg", "tags": ["Gaming", "Tech", "Fitness"],
-        "bio": "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
-        "prompts": [{"question": "Together we could",
-                     "answer": "Win the group project and the late-night game."}],
-    }),
+    (
+        "redeemer",
+        "redeemer@gmail.com",
+        "123456",
+        {
+            "name": "Redeemer",
+            "age": 22,
+            "gender": "Man",
+            "distance": "1 mile away",
+            "avatar": "/team/redeemer.jpg",
+            "tags": ["Coding", "Coffee", "Gaming"],
+            "bio": "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
+            "prompts": [
+                {
+                    "question": "A perfect Sunday looks like",
+                    "answer": "Zero errors in the terminal and a very long nap.",
+                }
+            ],
+        },
+    ),
+    (
+        "jastin",
+        "jastin@gmail.com",
+        "jastin123",
+        {
+            "name": "Jastin",
+            "age": 23,
+            "gender": "Man",
+            "distance": "2 miles away",
+            "avatar": "/team/jastin.jpg",
+            "tags": ["Tech", "Music", "Late Night"],
+            "bio": "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
+            "prompts": [
+                {
+                    "question": "My most controversial opinion",
+                    "answer": "Tabs are better than spaces, fight me.",
+                }
+            ],
+        },
+    ),
+    (
+        "jennifer",
+        "jennifer@gmail.com",
+        "jennifer123",
+        {
+            "name": "Jennifer",
+            "age": 22,
+            "gender": "Woman",
+            "distance": "3 miles away",
+            "avatar": "/team/barnedo.jpg",
+            "tags": ["Design", "Movies", "Coffee"],
+            "bio": "Professional deadline survivor. Will trade my notes for good conversation.",
+            "prompts": [
+                {
+                    "question": "I'll know it's a match when",
+                    "answer": "You also say 'five more minutes' and mean it.",
+                }
+            ],
+        },
+    ),
+    (
+        "shenaiah",
+        "shenaiah@gmail.com",
+        "shenaiah123",
+        {
+            "name": "Shenaiah",
+            "age": 24,
+            "gender": "Woman",
+            "distance": "4 miles away",
+            "avatar": "/team/sabana.jpg",
+            "tags": ["Travel", "Photography", "Music"],
+            "bio": "Here for the good vibes and the group projects that somehow work out.",
+            "prompts": [
+                {
+                    "question": "The best way to win me over is",
+                    "answer": "Bring snacks to our group meeting.",
+                }
+            ],
+        },
+    ),
+    (
+        "tthrystan",
+        "tthrystan@gmail.com",
+        "tthrystan123",
+        {
+            "name": "Tthrystan",
+            "age": 23,
+            "gender": "Man",
+            "distance": "5 miles away",
+            "avatar": "/team/amomas.jpeg",
+            "tags": ["Gaming", "Tech", "Fitness"],
+            "bio": "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
+            "prompts": [
+                {
+                    "question": "Together we could",
+                    "answer": "Win the group project and the late-night game.",
+                }
+            ],
+        },
+    ),
 ]
 
 
@@ -146,13 +212,29 @@ def setup_database():
                 sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 text TEXT NOT NULL,
+                image TEXT,                      -- photo sent in chat (or NULL)
                 created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS reactions (
+                message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                reaction TEXT NOT NULL,          -- love, like, haha, wow, sad, angry
+                PRIMARY KEY (message_id, user_id)
+            );
         """)
+        # Old databases (made before photos in chat) don't have the image column yet
+        columns = [c["name"] for c in conn.execute("PRAGMA table_info(messages)")]
+        if "image" not in columns:
+            conn.execute("ALTER TABLE messages ADD COLUMN image TEXT")
         empty = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
         if empty:
             for username, email, password, fields in TEAM:
-                profile = {**DEFAULT_PROFILE, "title": "BSIT Student", **fields, "onboarded": True}
+                profile = {
+                    **DEFAULT_PROFILE,
+                    "title": "BSIT Student",
+                    **fields,
+                    "onboarded": True,
+                }
                 conn.execute(
                     "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
                     (username, email, hash_password(password), json.dumps(profile)),
@@ -184,6 +266,7 @@ def get_user_row(conn, user_id):
 
 # ---------------------------------------------------------------- request bodies
 
+
 class RegisterBody(BaseModel):
     username: str
     email: str
@@ -203,7 +286,16 @@ class PairBody(BaseModel):
 class MessageBody(BaseModel):
     sender_id: int
     receiver_id: int
-    text: str
+    text: str = ""
+    image: str | None = None  # "/uploads/abc.jpg" when sending a photo
+
+
+class ReactionBody(BaseModel):
+    user_id: int
+    reaction: str  # love, like, haha, wow, sad, angry
+
+
+REACTIONS = {"love", "like", "haha", "wow", "sad", "angry"}
 
 
 class PhotoBody(BaseModel):
@@ -216,6 +308,7 @@ EDITABLE = set(DEFAULT_PROFILE.keys())
 
 # ---------------------------------------------------------------- endpoints
 
+
 @app.get("/")
 def home():
     return {"message": "SoulSync API is running. Open /docs to try it."}
@@ -223,15 +316,23 @@ def home():
 
 # ---- accounts
 
+
 @app.post("/register", status_code=201)
 def register(body: RegisterBody):
     email = body.email.strip().lower()
     with db() as conn:
         if conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
-            raise HTTPException(status_code=409, detail="An account with this email already exists.")
+            raise HTTPException(
+                status_code=409, detail="An account with this email already exists."
+            )
         cursor = conn.execute(
             "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
-            (body.username.strip(), email, hash_password(body.password), json.dumps(DEFAULT_PROFILE)),
+            (
+                body.username.strip(),
+                email,
+                hash_password(body.password),
+                json.dumps(DEFAULT_PROFILE),
+            ),
         )
         return to_json(get_user_row(conn, cursor.lastrowid))
 
@@ -249,6 +350,7 @@ def login(body: LoginBody):
 
 
 # ---- users (CRUD)
+
 
 @app.get("/users")
 def list_users():
@@ -273,7 +375,9 @@ def update_user(user_id: int, changes: dict):
             if key in EDITABLE:
                 profile[key] = value
         profile["photos"] = (profile["photos"] or [])[:5]  # max 5 extra photos
-        conn.execute("UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id))
+        conn.execute(
+            "UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id)
+        )
         return to_json(get_user_row(conn, user_id))
 
 
@@ -287,6 +391,7 @@ def delete_user(user_id: int):
 
 
 # ---- photos
+
 
 @app.post("/upload", status_code=201)
 async def upload_photo(file: UploadFile = File(...)):
@@ -319,30 +424,47 @@ def upload_photo_base64(body: PhotoBody):
 
 # ---- likes
 
+
 @app.get("/users/{user_id}/likes")
 def get_likes(user_id: int):
     """liked = people I liked, likedBy = people who liked me."""
     with db() as conn:
-        liked = [str(r[0]) for r in conn.execute("SELECT to_id FROM likes WHERE from_id = ?", (user_id,))]
-        liked_by = [str(r[0]) for r in conn.execute("SELECT from_id FROM likes WHERE to_id = ?", (user_id,))]
+        liked = [
+            str(r[0])
+            for r in conn.execute(
+                "SELECT to_id FROM likes WHERE from_id = ?", (user_id,)
+            )
+        ]
+        liked_by = [
+            str(r[0])
+            for r in conn.execute(
+                "SELECT from_id FROM likes WHERE to_id = ?", (user_id,)
+            )
+        ]
         return {"liked": liked, "likedBy": liked_by}
 
 
 @app.post("/likes", status_code=201)
 def add_like(body: PairBody):
     with db() as conn:
-        conn.execute("INSERT OR IGNORE INTO likes (from_id, to_id) VALUES (?, ?)", (body.from_id, body.to_id))
+        conn.execute(
+            "INSERT OR IGNORE INTO likes (from_id, to_id) VALUES (?, ?)",
+            (body.from_id, body.to_id),
+        )
         return {"from_id": str(body.from_id), "to_id": str(body.to_id)}
 
 
 @app.delete("/likes/{from_id}/{to_id}")
 def remove_like(from_id: int, to_id: int):
     with db() as conn:
-        conn.execute("DELETE FROM likes WHERE from_id = ? AND to_id = ?", (from_id, to_id))
+        conn.execute(
+            "DELETE FROM likes WHERE from_id = ? AND to_id = ?", (from_id, to_id)
+        )
         return {"deleted": True}
 
 
 # ---- blocks
+
 
 @app.get("/users/{user_id}/blocks")
 def get_blocks(user_id: int):
@@ -358,23 +480,53 @@ def get_blocks(user_id: int):
 @app.post("/blocks", status_code=201)
 def block_user(body: PairBody):
     with db() as conn:
-        conn.execute("INSERT OR IGNORE INTO blocks (from_id, to_id) VALUES (?, ?)", (body.from_id, body.to_id))
-        conn.execute("DELETE FROM likes WHERE from_id = ? AND to_id = ?", (body.from_id, body.to_id))
+        conn.execute(
+            "INSERT OR IGNORE INTO blocks (from_id, to_id) VALUES (?, ?)",
+            (body.from_id, body.to_id),
+        )
+        conn.execute(
+            "DELETE FROM likes WHERE from_id = ? AND to_id = ?",
+            (body.from_id, body.to_id),
+        )
         return {"from_id": str(body.from_id), "to_id": str(body.to_id)}
 
 
 # ---- messages
 
-def message_json(row) -> dict:
+
+def message_json(row, reactions=None) -> dict:
     created = datetime.fromisoformat(row["created_at"])
     return {
         "id": str(row["id"]),
         "senderId": str(row["sender_id"]),
         "receiverId": str(row["receiver_id"]),
         "text": row["text"],
+        "image": row["image"],
+        "reactions": reactions or {},  # { "userId": "love", ... }
         "createdAt": row["created_at"],
         "time": created.strftime("%I:%M %p").lstrip("0"),  # "3:07 PM"
     }
+
+
+def get_reactions(conn, message_ids) -> dict:
+    """{ message id: { user id: reaction } } for the given messages."""
+    result = {}
+    if not message_ids:
+        return result
+    marks = ",".join("?" * len(message_ids))
+    rows = conn.execute(
+        f"SELECT * FROM reactions WHERE message_id IN ({marks})", list(message_ids)
+    )
+    for r in rows:
+        result.setdefault(r["message_id"], {})[str(r["user_id"])] = r["reaction"]
+    return result
+
+
+def get_message_row(conn, message_id):
+    row = conn.execute("SELECT * FROM messages WHERE id = ?", (message_id,)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Message not found.")
+    return row
 
 
 @app.get("/messages")
@@ -387,22 +539,60 @@ def get_messages(user_a: int, user_b: int):
                ORDER BY id""",
             (user_a, user_b, user_b, user_a),
         ).fetchall()
-        return [message_json(r) for r in rows]
+        reactions = get_reactions(conn, [r["id"] for r in rows])
+        return [message_json(r, reactions.get(r["id"])) for r in rows]
 
 
 @app.post("/messages", status_code=201)
 def send_message(body: MessageBody):
     text = body.text.strip()
-    if not text:
+    image = body.image or None
+    if not text and not image:
         raise HTTPException(status_code=400, detail="Message is empty.")
     with db() as conn:
         get_user_row(conn, body.receiver_id)
         cursor = conn.execute(
-            "INSERT INTO messages (sender_id, receiver_id, text, created_at) VALUES (?, ?, ?, ?)",
-            (body.sender_id, body.receiver_id, text, datetime.now().isoformat(timespec="seconds")),
+            "INSERT INTO messages (sender_id, receiver_id, text, image, created_at) VALUES (?, ?, ?, ?, ?)",
+            (
+                body.sender_id,
+                body.receiver_id,
+                text,
+                image,
+                datetime.now().isoformat(timespec="seconds"),
+            ),
         )
-        row = conn.execute("SELECT * FROM messages WHERE id = ?", (cursor.lastrowid,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM messages WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
         return message_json(row)
+
+
+# ---- reactions (long press a message: love, like, haha, wow, sad, angry)
+
+
+@app.post("/messages/{message_id}/reactions", status_code=201)
+def react_to_message(message_id: int, body: ReactionBody):
+    """One reaction per person per message: reacting again replaces the old one."""
+    if body.reaction not in REACTIONS:
+        raise HTTPException(status_code=400, detail="Unknown reaction.")
+    with db() as conn:
+        row = get_message_row(conn, message_id)
+        conn.execute(
+            "INSERT OR REPLACE INTO reactions (message_id, user_id, reaction) VALUES (?, ?, ?)",
+            (message_id, body.user_id, body.reaction),
+        )
+        return message_json(row, get_reactions(conn, [message_id]).get(message_id))
+
+
+@app.delete("/messages/{message_id}/reactions/{user_id}")
+def remove_reaction(message_id: int, user_id: int):
+    with db() as conn:
+        row = get_message_row(conn, message_id)
+        conn.execute(
+            "DELETE FROM reactions WHERE message_id = ? AND user_id = ?",
+            (message_id, user_id),
+        )
+        return message_json(row, get_reactions(conn, [message_id]).get(message_id))
 
 
 @app.delete("/messages/{message_id}")
@@ -426,6 +616,8 @@ def get_inbox(user_id: int):
         ).fetchall()
         inbox = []
         for row in rows:
-            other = row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
+            other = (
+                row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
+            )
             inbox.append({"otherId": str(other), "lastMessage": message_json(row)})
         return inbox

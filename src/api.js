@@ -47,6 +47,11 @@ function fixUser(user) {
   };
 }
 
+// A chat message from the server: fix its photo link too
+function fixMessage(message) {
+  return { ...message, image: fullUrl(message.image) };
+}
+
 // ---- the one function that talks to the server: fetch -> check -> json
 async function request(path, { method = "GET", body } = {}) {
   let response;
@@ -59,7 +64,9 @@ async function request(path, { method = "GET", body } = {}) {
   } catch {
     // no answer at all = the server is off, or the phone is on another WiFi
     throw new Error(
-      "Can't reach the server at " + API_URL + ". Is it running, and are you on the same WiFi/hotspot?",
+      "Can't reach the server at " +
+        API_URL +
+        ". Is it running, and are you on the same WiFi/hotspot?",
     );
   }
   const data = await response.json().catch(() => null);
@@ -80,11 +87,15 @@ async function uploadPhoto(uri) {
     data = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error("Could not read the photo. Please pick it again."));
+      reader.onerror = () =>
+        reject(new Error("Could not read the photo. Please pick it again."));
       reader.readAsDataURL(blob);
     });
   }
-  const result = await request("/upload-base64", { method: "POST", body: { data } });
+  const result = await request("/upload-base64", {
+    method: "POST",
+    body: { data },
+  });
   return result.url; // "/uploads/abc.jpg"
 }
 
@@ -100,13 +111,18 @@ async function preparePhoto(uri) {
 // ================================================================ ACCOUNTS
 // POST /login
 export async function apiLogin(email, password) {
-  return fixUser(await request("/login", { method: "POST", body: { email, password } }));
+  return fixUser(
+    await request("/login", { method: "POST", body: { email, password } }),
+  );
 }
 
 // POST /register
 export async function apiRegister(username, email, password) {
   return fixUser(
-    await request("/register", { method: "POST", body: { username, email, password } }),
+    await request("/register", {
+      method: "POST",
+      body: { username, email, password },
+    }),
   );
 }
 
@@ -172,16 +188,46 @@ export function apiBlock(fromId, toId) {
 
 // ================================================================ MESSAGES
 // GET /messages?user_a=..&user_b=.. = one conversation
-export function apiGetMessages(myId, otherId) {
-  return request("/messages?user_a=" + myId + "&user_b=" + otherId);
+export async function apiGetMessages(myId, otherId) {
+  const messages = await request(
+    "/messages?user_a=" + myId + "&user_b=" + otherId,
+  );
+  return messages.map(fixMessage);
 }
 
-// POST /messages
-export function apiSendMessage(myId, otherId, text) {
-  return request("/messages", {
+// POST /messages (text, a photo, or both). The photo is uploaded first.
+export async function apiSendMessage(myId, otherId, text, photo) {
+  const image = photo ? await preparePhoto(photo) : null;
+  const message = await request("/messages", {
     method: "POST",
-    body: { sender_id: Number(myId), receiver_id: Number(otherId), text },
+    body: {
+      sender_id: Number(myId),
+      receiver_id: Number(otherId),
+      text,
+      image,
+    },
   });
+  return fixMessage(message);
+}
+
+// POST /messages/:id/reactions = react (love, like, haha, wow, sad, angry)
+export async function apiReact(messageId, myId, reaction) {
+  const message = await request("/messages/" + messageId + "/reactions", {
+    method: "POST",
+    body: { user_id: Number(myId), reaction },
+  });
+  return fixMessage(message);
+}
+
+// DELETE /messages/:id/reactions/:userId = remove my reaction
+export async function apiRemoveReaction(messageId, myId) {
+  const message = await request(
+    "/messages/" + messageId + "/reactions/" + myId,
+    {
+      method: "DELETE",
+    },
+  );
+  return fixMessage(message);
 }
 
 // DELETE /messages/:id
@@ -190,6 +236,10 @@ export function apiDeleteMessage(messageId) {
 }
 
 // GET /users/:id/inbox = my conversations, newest first
-export function apiGetInbox(id) {
-  return request("/users/" + id + "/inbox");
+export async function apiGetInbox(id) {
+  const inbox = await request("/users/" + id + "/inbox");
+  return inbox.map((item) => ({
+    ...item,
+    lastMessage: fixMessage(item.lastMessage),
+  }));
 }
