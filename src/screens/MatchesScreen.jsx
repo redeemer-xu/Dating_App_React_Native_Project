@@ -112,7 +112,7 @@ export default function MatchesScreen() {
               No messages yet. Say hi to someone!
             </Text>
           ) : null}
-          {inbox.map(({ otherId, lastMessage, profile }) => (
+          {inbox.map(({ otherId, lastMessage, profile, unread }) => (
             <TouchableOpacity
               key={otherId}
               style={styles.inboxRow}
@@ -121,12 +121,25 @@ export default function MatchesScreen() {
               <Avatar uri={profile.avatar} name={profile.name} size={52} />
               <View style={styles.inboxText}>
                 <Text style={styles.inboxName}>{profile.name}</Text>
-                <Text style={styles.inboxPreview} numberOfLines={1}>
+                {/* unread = bold text + red count */}
+                <Text
+                  style={[styles.inboxPreview, unread > 0 && styles.inboxPreviewUnread]}
+                  numberOfLines={1}
+                >
                   {lastMessage.senderId === me ? "You: " : ""}
                   {lastMessage.text || "📷 Photo"}
                 </Text>
               </View>
-              <Text style={styles.inboxTime}>{lastMessage.time}</Text>
+              <View style={styles.inboxRight}>
+                <Text style={[styles.inboxTime, unread > 0 && styles.inboxTimeUnread]}>
+                  {lastMessage.time}
+                </Text>
+                {unread > 0 ? (
+                  <View style={styles.unreadBadge}>
+                    <Text style={styles.unreadText}>{unread}</Text>
+                  </View>
+                ) : null}
+              </View>
             </TouchableOpacity>
           ))}
 
@@ -250,5 +263,31 @@ const makeStyles = (colors) =>
   inboxTime: {
     color: colors.textOnDarkMuted,
     fontSize: 11,
+  },
+  inboxPreviewUnread: {
+    color: colors.textOnDark,
+    fontWeight: "700",
+  },
+  inboxRight: {
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  inboxTimeUnread: {
+    color: colors.accent,
+    fontWeight: "700",
+  },
+  unreadBadge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  unreadText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "800",
   },
 });

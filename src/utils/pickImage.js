@@ -23,9 +23,7 @@ function toPhoto(result) {
   if (result.canceled) return null; // closed without picking
   const photo = result.assets[0];
   if (photo.base64) {
-    return (
-      "data:" + (photo.mimeType ?? "image/jpeg") + ";base64," + photo.base64
-    );
+    return "data:" + (photo.mimeType ?? "image/jpeg") + ";base64," + photo.base64;
   }
   return photo.uri;
 }
@@ -38,16 +36,29 @@ export async function pickImageFromGallery(forChat = false) {
   return toPhoto(result);
 }
 
+// Selfie for the verified badge: front camera, no cropping
+const SELFIE_OPTIONS = {
+  ...CHAT_OPTIONS,
+  cameraType: ImagePicker.CameraType.front,
+};
+
 // Opens the phone's camera app. Asks for permission the first time.
 export async function takePhotoWithCamera(forChat = true) {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) {
-    throw new Error(
-      "Please allow SoulSync to use your camera in your phone's Settings.",
-    );
+    throw new Error("Please allow SoulSync to use your camera in your phone's Settings.");
   }
   const result = await ImagePicker.launchCameraAsync(
     forChat ? CHAT_OPTIONS : PROFILE_OPTIONS,
   );
   return toPhoto(result);
+}
+
+// Opens the FRONT camera for a verification selfie
+export async function takeSelfie() {
+  const permission = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permission.granted) {
+    throw new Error("Please allow SoulSync to use your camera in your phone's Settings.");
+  }
+  return toPhoto(await ImagePicker.launchCameraAsync(SELFIE_OPTIONS));
 }

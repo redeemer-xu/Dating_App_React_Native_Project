@@ -29,6 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
 import MessageBubble from "../components/MessageBubble";
 import ReactionPicker from "../components/ReactionPicker";
+import VerifiedBadge from "../components/VerifiedBadge";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useMatches } from "../context/MatchesContext";
@@ -85,6 +86,8 @@ export default function ChatScreen() {
     from: m.senderId === me ? "me" : "them",
   }));
   const isMatch = matchIds.includes(id);
+  // my newest message: shows "Seen" once they open the chat
+  const lastMine = [...messages].reverse().find((m) => m.from === "me");
 
   // POST /messages -> saved on the server, so the other person receives it.
   // A photo is uploaded first, then sent together with the text.
@@ -204,7 +207,10 @@ export default function ChatScreen() {
         <TouchableOpacity style={styles.headerCenter} onPress={handleViewProfile}>
           <Avatar uri={other.avatar} name={other.name} size={36} />
           <View style={styles.headerTextGroup}>
-            <Text style={styles.headerName}>{other.name}</Text>
+            <View style={styles.headerNameRow}>
+              <Text style={styles.headerName}>{other.name}</Text>
+              {other.verified ? <VerifiedBadge size={16} /> : null}
+            </View>
           </View>
         </TouchableOpacity>
 
@@ -272,6 +278,7 @@ export default function ChatScreen() {
               message={item}
               onLongPress={() => setPressedMessage(item)}
               onPressImage={() => setBigPhoto(item.image)}
+              showSeen={item.id === lastMine?.id && item.seen}
             />
           )}
         />
@@ -397,6 +404,11 @@ const makeStyles = (colors) =>
   },
   headerTextGroup: {
     justifyContent: "center",
+  },
+  headerNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   headerName: {
     fontSize: 15,

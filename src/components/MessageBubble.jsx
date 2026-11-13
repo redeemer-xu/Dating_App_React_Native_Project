@@ -6,7 +6,8 @@ import { useTheme } from "../context/ThemeContext";
 
 // One chat message: text and/or a photo, plus its reactions underneath.
 // Long press = open the reaction bar. Tap the photo = see it big.
-export default function MessageBubble({ message, onLongPress, onPressImage }) {
+// showSeen = this is my last message and they opened the chat -> "Seen" under it
+export default function MessageBubble({ message, onLongPress, onPressImage, showSeen = false }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const isMe = message.from === "me";
@@ -61,6 +62,7 @@ export default function MessageBubble({ message, onLongPress, onPressImage }) {
             ) : null}
           </View>
         ) : null}
+        {showSeen ? <Text style={styles.seen}>Seen</Text> : null}
       </Pressable>
     </View>
   );
@@ -144,6 +146,14 @@ const makeStyles = (colors) =>
   pillThem: {
     alignSelf: "flex-start",
     marginLeft: 8,
+  },
+  seen: {
+    alignSelf: "flex-end",
+    marginTop: 4,
+    marginRight: 4,
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textOnDarkMuted,
   },
   reactionEmoji: {
     fontSize: 13,

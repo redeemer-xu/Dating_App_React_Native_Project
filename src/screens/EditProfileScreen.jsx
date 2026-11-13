@@ -36,6 +36,7 @@ export default function EditProfileScreen() {
   const [name, setName] = useState(currentUser?.name ?? currentUser?.username ?? "");
   const [bio, setBio] = useState(currentUser?.bio ?? "");
   const [interests, setInterests] = useState(currentUser?.tags ?? []);
+  const [gender, setGender] = useState(currentUser?.gender ?? null); // "Man" / "Woman"
   const [promptQuestion, setPromptQuestion] = useState(
     currentUser?.prompts?.[0]?.question ?? "",
   );
@@ -72,7 +73,7 @@ export default function EditProfileScreen() {
     }
 
     if (bio.length > MAX_BIO_LENGTH) {
-      newErrors.bio = `Bio must be ${MAX_BIO_LENGTH} characters or less.`;
+      newErrors.bio = "Bio must be " + MAX_BIO_LENGTH + " characters or less.";
     }
 
     if (promptQuestion && !promptAnswer.trim()) {
@@ -92,6 +93,7 @@ export default function EditProfileScreen() {
       await saveProfile(currentUser.id, {
         name: name.trim(),
         bio: bio.trim(),
+        gender,
         tags: interests,
         prompts: promptQuestion
           ? [{ question: promptQuestion, answer: promptAnswer.trim() }]
@@ -166,15 +168,27 @@ export default function EditProfileScreen() {
           />
 
           <FormInput
-            label={`Bio (${bio.length}/${MAX_BIO_LENGTH})`}
+            label={"Bio (" + bio.length + "/" + MAX_BIO_LENGTH + ")"}
             placeholder="Tell people about yourself"
             value={bio}
             onChangeText={setBio}
             error={errors.bio}
           />
 
+          <Text style={styles.sectionTitle}>I am</Text>
+          <View style={styles.chipGrid}>
+            {["Man", "Woman"].map((option) => (
+              <SelectableChip
+                key={option}
+                label={option}
+                selected={gender === option}
+                onPress={() => setGender(option)}
+              />
+            ))}
+          </View>
+
           <Text style={styles.sectionTitle}>
-            Interests {interests.length > 0 && `(${interests.length} selected)`}
+            Interests {interests.length > 0 ? "(" + interests.length + " selected)" : ""}
           </Text>
           <View style={styles.chipGrid}>
             {interestOptions.map((interest) => (

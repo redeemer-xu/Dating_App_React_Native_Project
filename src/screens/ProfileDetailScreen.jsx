@@ -13,9 +13,12 @@ import Button from "../components/Button";
 import PhotoGallery from "../components/PhotoGallery";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
+import VerifiedBadge from "../components/VerifiedBadge";
+import { useAuth } from "../context/AuthContext";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { useTheme } from "../context/ThemeContext";
+import { distanceLabel, kmBetween } from "../utils/distance";
 
 export default function ProfileDetailScreen() {
   const { colors } = useTheme();
@@ -23,6 +26,7 @@ export default function ProfileDetailScreen() {
   const { id } = useLocalSearchParams();
   const { getProfile } = useProfiles();
   const { isHidden } = useMatches();
+  const { currentUser } = useAuth();
   const profile = getProfile(id);
 
   if (!profile || isHidden(id)) {
@@ -58,12 +62,19 @@ export default function ProfileDetailScreen() {
             style={styles.heroBottomFade}
             pointerEvents="none"
           >
-            <Text style={styles.heroName}>
-              {profile.name}
-              <Text style={styles.heroAge}>, {profile.age}</Text>
-            </Text>
+            <View style={styles.heroNameRow}>
+              <Text style={styles.heroName}>
+                {profile.name}
+                <Text style={styles.heroAge}>, {profile.age}</Text>
+              </Text>
+              {profile.verified ? <VerifiedBadge size={24} /> : null}
+            </View>
             <Text style={styles.heroMeta}>{profile.title}</Text>
-            <Text style={styles.heroMeta}>{profile.location}</Text>
+            <Text style={styles.heroMeta}>
+              {kmBetween(currentUser, profile) === null
+                ? profile.location
+                : profile.location + " · " + distanceLabel(currentUser, profile)}
+            </Text>
           </LinearGradient>
 
           <SafeAreaView
@@ -109,10 +120,10 @@ export default function ProfileDetailScreen() {
               />
             ))}
             <Button
-              title={`Message ${profile.name}`}
+              title={"Message " + profile.name}
               variant="accent"
               glow
-              onPress={() => router.push(`/chat/${profile.id}`)}
+              onPress={() => router.push("/chat/" + profile.id)}
             />
           </View>
         </View>
@@ -154,6 +165,11 @@ const makeStyles = (colors) =>
     paddingHorizontal: 20,
     paddingBottom: 24,
     paddingTop: 100,
+  },
+  heroNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   heroName: {
     fontSize: 28,

@@ -71,10 +71,13 @@ export default function OnboardingStepThree() {
         name: data.firstName.trim(),
         age: birthDate ? getAge(birthDate) : 18,
         birthday: data.birthday,
+        gender: data.gender,
         showMe: data.showMe,
         lookingFor: data.lookingFor,
         avatar: data.photo, // null = no photo, the first letter is shown
         photos: data.extraPhotos,
+        verificationPhoto: data.verificationPhoto,
+        verified: !!data.verificationPhoto,
         tags: data.interests,
         prompts: [{ question: data.promptQuestion, answer: data.promptAnswer.trim() }],
         onboarded: true,
@@ -96,7 +99,7 @@ export default function OnboardingStepThree() {
         <Text style={styles.heading}>What makes you, you?</Text>
 
         <Text style={styles.sectionLabel}>
-          Interests {data.interests.length > 0 && `(${data.interests.length} selected)`}
+          Interests {data.interests.length > 0 ? "(" + data.interests.length + " selected)" : ""}
         </Text>
         {errors.interests ? <Text style={styles.errorText}>{errors.interests}</Text> : null}
 

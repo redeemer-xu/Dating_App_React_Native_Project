@@ -65,7 +65,7 @@ export default function DiscoverySettingsModal({
           <View style={styles.section}>
             <View style={styles.labelRow}>
               <Text style={styles.label}>Maximum Distance</Text>
-              <Text style={styles.valueText}>{draft.distance} miles</Text>
+              <Text style={styles.valueText}>{draft.distance} km</Text>
             </View>
             <Slider
               min={1}

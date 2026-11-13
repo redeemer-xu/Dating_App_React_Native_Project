@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
+import VerifiedBadge from "../components/VerifiedBadge";
 import Button from "../components/Button";
 import DiscoverySettingsModal from "../components/DiscoverySettingsModal";
 import GradientBackground from "../components/GradientBackground";
@@ -22,13 +23,14 @@ import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
 import { defaultDiscoveryFilters } from "../data/mockData";
 import { useTheme } from "../context/ThemeContext";
+import { kmBetween } from "../utils/distance";
 
 export default function HomeScreen() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { currentUser: user } = useAuth();
   const { addMatch, isHidden, matchIds, refreshMatches } = useMatches();
-  const { profiles, loading, error, refreshProfiles } = useProfiles();
+  const { profiles, loading, error, refreshProfiles, saveProfile } = useProfiles();
 
   // Every time you open Discover: get the newest profiles from the server
   // (so people who just signed up show up)
@@ -40,7 +42,19 @@ export default function HomeScreen() {
     }, []),
   );
   const [seenIds, setSeenIds] = useState([]); // people you already liked or passed
-  const [filters, setFilters] = useState(defaultDiscoveryFilters);
+  // "Show Me" starts with what you picked in onboarding
+  const [filters, setFilters] = useState(() => ({
+    ...defaultDiscoveryFilters,
+    showMe: user?.showMe ?? "Everyone",
+  }));
+
+  // Done in Discovery Settings: use the new filters, and save "Show Me" on the server
+  const applyFilters = (newFilters) => {
+    setFilters(newFilters);
+    if (user && newFilters.showMe !== user.showMe) {
+      saveProfile(user.id, { showMe: newFilters.showMe }).catch(() => {});
+    }
+  };
   const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
   const [search, setSearch] = useState("");
@@ -58,9 +72,17 @@ export default function HomeScreen() {
   const matchingFilters = profiles.filter((p) => {
     if (p.id === user?.id) return false; // never show yourself
     if (isHidden(p.id)) return false; // blocked
-    const miles = parseInt(p.distance, 10); // "3 miles away" -> 3
     const [minAge, maxAge] = filters.ageRange;
-    return p.age >= minAge && p.age <= maxAge && miles <= filters.distance;
+    if (p.age < minAge || p.age > maxAge) return false;
+    // distance in km from my GPS location (unknown location = still shown)
+    const km = kmBetween(user, p);
+    if (km !== null && km > filters.distance) return false;
+    // Show Me: Women / Men / Everyone
+    if (filters.showMe === "Women" && p.gender !== "Woman") return false;
+    if (filters.showMe === "Men" && p.gender !== "Man") return false;
+    // Verified Profiles Only
+    if (filters.verifiedOnly && !p.verified) return false;
+    return true;
   });
   // 2) ...and that you haven't liked or passed yet
   // (liked people stay hidden even after you log out and back in)
@@ -145,10 +167,13 @@ export default function HomeScreen() {
               >
                 <Avatar uri={p.avatar} name={p.name} size={50} />
                 <View style={styles.resultText}>
-                  <Text style={styles.resultName}>
-                    {p.name}
-                    {p.age ? ", " + p.age : ""}
-                  </Text>
+                  <View style={styles.resultNameRow}>
+                    <Text style={styles.resultName}>
+                      {p.name}
+                      {p.age ? ", " + p.age : ""}
+                    </Text>
+                    {p.verified ? <VerifiedBadge size={16} /> : null}
+                  </View>
                   <Text style={styles.resultTags} numberOfLines={1}>
                     {(p.tags ?? []).join(" · ") || p.title}
                   </Text>
@@ -222,7 +247,7 @@ export default function HomeScreen() {
           isVisible={isSettingsVisible}
           onClose={() => setSettingsVisible(false)}
           filters={filters}
-          onApply={setFilters}
+          onApply={applyFilters}
         />
 
         <MatchOverlay
@@ -279,6 +304,11 @@ const makeStyles = (colors) =>
   },
   resultText: {
     flex: 1,
+  },
+  resultNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   resultName: {
     color: colors.textOnDark,
