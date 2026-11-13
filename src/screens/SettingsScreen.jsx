@@ -9,6 +9,7 @@ import {
   Moon,
   Smartphone,
   Sun,
+  Trash2,
   User,
 } from "lucide-react-native";
 import { useState } from "react";
@@ -21,7 +22,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { apiChangePassword } from "../api";
+import { apiChangePassword, apiDeleteAccount } from "../api";
 import Button from "../components/Button";
 import GradientBackground from "../components/GradientBackground";
 import PasswordInput from "../components/PasswordInput";
@@ -79,6 +80,42 @@ export default function SettingsScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // ---- delete account (needs the password) ----
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = () => {
+    if (!deletePassword) {
+      setDeleteError("Type your password to confirm.");
+      return;
+    }
+    Alert.alert(
+      "Delete your account?",
+      "Your profile, likes, messages and photos will be deleted forever. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete forever",
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+            setDeleteError(null);
+            try {
+              await apiDeleteAccount(currentUser.id, deletePassword);
+              logout(); // also forgets the saved login
+              router.replace("/");
+            } catch (err) {
+              setDeleteError(err.message);
+              setDeleting(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   // ---- sign out (likes and messages stay saved on the server) ----
@@ -216,6 +253,55 @@ export default function SettingsScreen() {
             <Text style={[styles.rowTitle, { color: colors.error }]}>Sign out</Text>
           </TouchableOpacity>
 
+          {/* ---------------- DANGER ZONE ---------------- */}
+          <Text style={styles.sectionLabel}>DANGER ZONE</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={() => {
+                setDeleteOpen(!deleteOpen);
+                setDeletePassword("");
+                setDeleteError(null);
+              }}
+            >
+              <Trash2 size={20} color={colors.error} />
+              <Text style={[styles.rowTitle, { color: colors.error }]}>Delete account</Text>
+              {deleteOpen ? (
+                <ChevronDown size={20} color={colors.textOnDarkMuted} />
+              ) : (
+                <ChevronRight size={20} color={colors.textOnDarkMuted} />
+              )}
+            </TouchableOpacity>
+
+            {deleteOpen ? (
+              <View style={styles.passwordForm}>
+                <Text style={styles.caption}>
+                  This deletes your profile, likes, messages and photos forever.
+                </Text>
+                <View style={styles.deleteField}>
+                  <PasswordInput
+                    label="Password"
+                    placeholder="Enter your password"
+                    value={deletePassword}
+                    onChangeText={setDeletePassword}
+                    error={deleteError}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={[styles.deleteButton, deleting && styles.deleteButtonBusy]}
+                  onPress={handleDeleteAccount}
+                  disabled={deleting}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.deleteButtonText}>
+                    {deleting ? "Deleting..." : "Delete my account"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+
           <Text style={styles.version}>SoulSync v1.0.0</Text>
         </ScrollView>
       </SafeAreaView>
@@ -331,6 +417,23 @@ const makeStyles = (colors) =>
       color: colors.textOnDarkMuted,
       fontSize: 12,
       marginTop: 10,
+    },
+    deleteField: {
+      marginTop: 12,
+    },
+    deleteButton: {
+      backgroundColor: colors.error,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    deleteButtonBusy: {
+      opacity: 0.6,
+    },
+    deleteButtonText: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "700",
     },
     signOut: {
       marginTop: 24,

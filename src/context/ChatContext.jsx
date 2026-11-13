@@ -3,6 +3,7 @@ import {
   apiDeleteMessage,
   apiGetInbox,
   apiGetMessages,
+  apiMarkRead,
   apiReact,
   apiRemoveReaction,
   apiSendMessage,
@@ -23,10 +24,7 @@ export function ChatProvider({ children }) {
   const mine = chat.owner === me ? chat : EMPTY;
 
   const change = (update) =>
-    setChat((prev) => ({
-      ...update(prev.owner === me ? prev : { ...EMPTY }),
-      owner: me,
-    }));
+    setChat((prev) => ({ ...update(prev.owner === me ? prev : { ...EMPTY }), owner: me }));
 
   // GET /messages?user_a=me&user_b=other
   const loadConversation = async (otherId) => {
@@ -38,6 +36,17 @@ export function ChatProvider({ children }) {
         error: null,
         conversations: { ...c.conversations, [otherId]: messages },
       }));
+      // New messages from them that I haven't read? I'm looking at them now -> "seen"
+      const hasUnread = messages.some((m) => m.senderId !== me && !m.seen);
+      if (hasUnread) {
+        await apiMarkRead(me, otherId);
+        change((c) => ({
+          ...c,
+          inbox: c.inbox.map((item) =>
+            item.otherId === String(otherId) ? { ...item, unread: 0 } : item,
+          ),
+        }));
+      }
     } catch (err) {
       change((c) => ({ ...c, error: err.message }));
     }
@@ -85,9 +94,7 @@ export function ChatProvider({ children }) {
       ...c,
       conversations: {
         ...c.conversations,
-        [otherId]: (c.conversations[otherId] ?? []).filter(
-          (m) => m.id !== messageId,
-        ),
+        [otherId]: (c.conversations[otherId] ?? []).filter((m) => m.id !== messageId),
       },
     }));
     try {
@@ -121,6 +128,8 @@ export function ChatProvider({ children }) {
 
   const getMessages = (otherId) => mine.conversations[otherId] ?? [];
   const getInbox = () => mine.inbox;
+  // total unread messages = the red number on the Matches tab
+  const unreadTotal = mine.inbox.reduce((sum, item) => sum + (item.unread ?? 0), 0);
 
   return (
     <ChatContext.Provider
@@ -132,6 +141,7 @@ export function ChatProvider({ children }) {
         sendMessage,
         deleteMessage,
         reactToMessage,
+        unreadTotal,
         chatError: mine.error,
       }}
     >

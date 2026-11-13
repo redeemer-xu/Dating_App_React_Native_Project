@@ -44,6 +44,7 @@ function fixUser(user) {
     avatar: fullUrl(user.avatar),
     photos: (user.photos ?? []).map(fullUrl),
     images: (user.images ?? []).map(fullUrl),
+    verificationPhoto: fullUrl(user.verificationPhoto),
   };
 }
 
@@ -139,6 +140,9 @@ export async function apiGetUser(id) {
 export async function apiUpdateUser(id, changes) {
   const body = { ...changes };
   if ("avatar" in body) body.avatar = await preparePhoto(body.avatar);
+  if ("verificationPhoto" in body) {
+    body.verificationPhoto = await preparePhoto(body.verificationPhoto);
+  }
   if ("photos" in body) {
     body.photos = await Promise.all((body.photos ?? []).map(preparePhoto));
   }
@@ -198,6 +202,19 @@ export async function apiSendMessage(myId, otherId, text, photo) {
     body: { sender_id: Number(myId), receiver_id: Number(otherId), text, image },
   });
   return fixMessage(message);
+}
+
+// POST /messages/read = I opened the chat, their messages are now "seen"
+export function apiMarkRead(myId, otherId) {
+  return request("/messages/read", {
+    method: "POST",
+    body: { reader_id: Number(myId), other_id: Number(otherId) },
+  });
+}
+
+// POST /users/:id/delete-account = delete my account (needs my password)
+export function apiDeleteAccount(id, password) {
+  return request("/users/" + id + "/delete-account", { method: "POST", body: { password } });
 }
 
 // POST /messages/:id/reactions = react (love, like, haha, wow, sad, angry)

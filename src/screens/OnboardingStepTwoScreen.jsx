@@ -10,7 +10,7 @@ import PhotoGridSlot from '../components/PhotoGridSlot';
 import VerificationCard from '../components/VerificationCard';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useTheme } from '../context/ThemeContext';
-import { pickImageFromGallery } from '../utils/pickImage';
+import { pickImageFromGallery, takeSelfie } from '../utils/pickImage';
 
 export default function OnboardingStepTwo() {
   const { colors } = useTheme();
@@ -37,6 +37,16 @@ export default function OnboardingStepTwo() {
   };
 
   const handleRemove = () => update({ photo: null });
+
+  // Get Verified: take a selfie with the front camera (saved in step 3)
+  const handleVerify = async () => {
+    try {
+      const selfie = await takeSelfie();
+      if (selfie) update({ verificationPhoto: selfie });
+    } catch (err) {
+      setErrors({ photo: err.message });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -70,7 +80,7 @@ export default function OnboardingStepTwo() {
           />
         </View>
 
-        <VerificationCard onPress={() => {}} />
+        <VerificationCard onPress={handleVerify} verified={!!data.verificationPhoto} />
       </ScrollView>
 
       <View style={styles.footer}>

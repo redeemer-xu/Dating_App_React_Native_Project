@@ -2,13 +2,17 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { distanceLabel } from '../utils/distance';
 import { imageSource } from '../utils/imageSource';
 import { colorForName, getInitial } from '../utils/initials';
+import VerifiedBadge from './VerifiedBadge';
 
 export default function DiscoveryCard({ profile, onPress }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
+  const { currentUser } = useAuth();
   const photos = (profile.images ?? []).filter(Boolean);
   const [photoIndex, setPhotoIndex] = useState(0); // which photo is showing
   const hasMany = photos.length > 1;
@@ -67,12 +71,15 @@ export default function DiscoveryCard({ profile, onPress }) {
           ))}
         </View>
 
-        <Text style={styles.name}>
-          {profile.name}
-          <Text style={styles.age}>, {profile.age}</Text>
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>
+            {profile.name}
+            <Text style={styles.age}>, {profile.age}</Text>
+          </Text>
+          {profile.verified ? <VerifiedBadge size={24} /> : null}
+        </View>
         <Text style={styles.meta}>{profile.title}</Text>
-        <Text style={styles.meta}>{profile.distance}</Text>
+        <Text style={styles.meta}>{distanceLabel(currentUser, profile)}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -156,6 +163,11 @@ const makeStyles = (colors) =>
     color: '#FFFFFF', // on top of the photo: always white
     fontSize: 12,
     fontWeight: '600',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   name: {
     fontSize: 28,

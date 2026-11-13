@@ -1,6 +1,8 @@
 import { router } from "expo-router";
 import { ArrowLeft, Settings } from "lucide-react-native";
+import { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,14 +16,35 @@ import GradientBackground from "../components/GradientBackground";
 import PhotoGallery from "../components/PhotoGallery";
 import PromptCard from "../components/PromptCard";
 import TagPill from "../components/TagPill";
+import VerificationCard from "../components/VerificationCard";
+import VerifiedBadge from "../components/VerifiedBadge";
 import { useAuth } from "../context/AuthContext";
+import { useProfiles } from "../context/ProfilesContext";
 import { useTheme } from "../context/ThemeContext";
+import { takeSelfie } from "../utils/pickImage";
 
 // isTab = opened from the bottom Profile tab (then there is no back arrow)
 export default function MyProfileScreen({ isTab = false }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { currentUser: user } = useAuth();
+  const { saveProfile } = useProfiles();
+  const [verifying, setVerifying] = useState(false);
+
+  // Get Verified: front-camera selfie -> uploaded -> blue check badge
+  const handleVerify = async () => {
+    try {
+      const selfie = await takeSelfie();
+      if (!selfie) return; // closed the camera
+      setVerifying(true);
+      await saveProfile(user.id, { verificationPhoto: selfie, verified: true });
+      Alert.alert("You're verified!", "People now see a blue check on your profile.");
+    } catch (err) {
+      Alert.alert("Could not verify", err.message);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   // My profile comes from the server: the same data other people see
   const name = user?.name || user?.username || "Your Profile";
@@ -62,7 +85,10 @@ export default function MyProfileScreen({ isTab = false }) {
         >
           <View style={styles.profileHeader}>
             <Avatar uri={avatarUri} name={name} size={96} />
-            <Text style={styles.name}>{name}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{name}</Text>
+              {user?.verified ? <VerifiedBadge size={24} /> : null}
+            </View>
             <View style={styles.editButton}>
               <Button
                 title="Edit Profile"
@@ -71,6 +97,12 @@ export default function MyProfileScreen({ isTab = false }) {
               />
             </View>
           </View>
+
+          {user?.verified ? null : (
+            <View style={styles.verifyBox}>
+              <VerificationCard onPress={handleVerify} busy={verifying} />
+            </View>
+          )}
 
           {myPhotos.length > 0 ? (
             <>
@@ -180,11 +212,19 @@ const makeStyles = (colors) =>
     alignItems: "center",
     paddingVertical: 18,
   },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
   name: {
     color: colors.textOnDark,
     fontSize: 26,
     fontWeight: "800",
-    marginTop: 12,
+  },
+  verifyBox: {
+    marginBottom: 20,
   },
   editButton: {
     alignSelf: "stretch",

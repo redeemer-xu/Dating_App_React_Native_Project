@@ -1,6 +1,6 @@
 // Fixed lists the app uses. (The users now come from our FastAPI server.)
 export const defaultDiscoveryFilters = {
-  distance: 25,
+  distance: 50, // km
   ageRange: [18, 40],
   showMe: "Everyone",
   verifiedOnly: false,

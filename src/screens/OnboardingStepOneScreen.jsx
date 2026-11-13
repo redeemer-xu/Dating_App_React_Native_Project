@@ -11,6 +11,7 @@ import { useOnboarding } from "../context/OnboardingContext";
 import { useTheme } from "../context/ThemeContext";
 import { getAge, parseBirthday } from "../utils/validation";
 
+const GENDER_OPTIONS = ["Man", "Woman"];
 const SHOW_ME_OPTIONS = ["Women", "Men", "Everyone"];
 const LOOKING_FOR_OPTIONS = ["Long-term", "Casual", "Not Sure"];
 
@@ -24,9 +25,9 @@ export default function OnboardingStepOne() {
     const digits = value.replace(/\D/g, "").slice(0, 8);
 
     if (digits.length <= 2) return digits;
-    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    if (digits.length <= 4) return digits.slice(0, 2) + "/" + digits.slice(2);
 
-    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    return digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
   };
 
   const handleContinue = () => {
@@ -41,6 +42,10 @@ export default function OnboardingStepOne() {
       nextErrors.birthday = "Enter a real date in MM/DD/YYYY format.";
     } else if (getAge(birthDate) < 18) {
       nextErrors.birthday = "You must be at least 18 to use SoulSync.";
+    }
+
+    if (!data.gender) {
+      nextErrors.gender = "Please choose one.";
     }
 
     if (data.lookingFor.length === 0) {
@@ -88,7 +93,23 @@ export default function OnboardingStepOne() {
           error={errors.birthday}
         />
 
-        <Text style={styles.sectionLabel}>Show Me</Text>
+        <Text style={styles.sectionLabel}>I am</Text>
+        <View style={styles.chipRow}>
+          {GENDER_OPTIONS.map((option) => (
+            <SelectableChip
+              key={option}
+              label={option}
+              selected={data.gender === option}
+              onPress={() => {
+                update({ gender: option });
+                setErrors((prev) => ({ ...prev, gender: null }));
+              }}
+            />
+          ))}
+        </View>
+        {errors.gender ? <Text style={styles.errorText}>{errors.gender}</Text> : null}
+
+        <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Show Me</Text>
         <View style={styles.chipRow}>
           {SHOW_ME_OPTIONS.map((option) => (
             <SelectableChip

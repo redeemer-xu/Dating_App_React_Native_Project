@@ -1,26 +1,39 @@
 import { Camera, ShieldCheck } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import VerifiedBadge from './VerifiedBadge';
 import { useTheme } from '../context/ThemeContext';
 
-export default function VerificationCard({ onPress }) {
+// Get Verified: tap the camera = take a selfie with the front camera.
+// verified = true -> shows "You're verified" instead. busy = uploading.
+export default function VerificationCard({ onPress, verified = false, busy = false }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   return (
     <View style={styles.card}>
       <View style={styles.iconCircle}>
-        <ShieldCheck size={22} color={colors.accent} />
+        {verified ? <VerifiedBadge size={24} /> : <ShieldCheck size={22} color={colors.accent} />}
       </View>
 
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>Get Verified Now</Text>
+        <Text style={styles.title}>{verified ? "You're verified" : 'Get Verified Now'}</Text>
         <Text style={styles.subtitle}>
-          A quick selfie helps matches know you&apos;re really you.
+          {verified
+            ? 'Your selfie is saved. People see a blue check on your profile.'
+            : "A quick selfie helps matches know you're really you."}
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.cameraButton} activeOpacity={0.85} onPress={onPress}>
-        <Camera size={20} color="#FFFFFF" />
-      </TouchableOpacity>
+      {verified ? null : (
+        <TouchableOpacity
+          style={styles.cameraButton}
+          activeOpacity={0.85}
+          onPress={onPress}
+          disabled={busy}
+          accessibilityLabel="Take a verification selfie"
+        >
+          {busy ? <ActivityIndicator color="#FFFFFF" /> : <Camera size={20} color="#FFFFFF" />}
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

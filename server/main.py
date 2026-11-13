@@ -78,7 +78,19 @@ DEFAULT_PROFILE = {
     "tags": [],  # interests
     "prompts": [],
     "verified": False,
+    "verificationPhoto": None,  # selfie from the front camera
+    "latitude": None,  # GPS location (sent by the app)
+    "longitude": None,
     "onboarded": False,  # True after the 3 onboarding steps
+}
+
+# Where our group mates are on the map (places around CDO)
+TEAM_SPOTS = {
+    "redeemer@gmail.com": (8.4859, 124.6569),  # USTP-CDO
+    "jastin@gmail.com": (8.4816, 124.6539),  # Limketkai Center
+    "jennifer@gmail.com": (8.4851, 124.6512),  # Ayala Centrio
+    "shenaiah@gmail.com": (8.4563, 124.6243),  # SM CDO Uptown
+    "tthrystan@gmail.com": (8.4843, 124.6545),  # SM CDO Downtown Premier
 }
 
 # Our group mates (added the first time the server starts)
@@ -160,10 +172,26 @@ def setup_database():
         columns = [c["name"] for c in conn.execute("PRAGMA table_info(messages)")]
         if "image" not in columns:
             conn.execute("ALTER TABLE messages ADD COLUMN image TEXT")
+        if "read_at" not in columns:  # when the other person opened the chat
+            conn.execute("ALTER TABLE messages ADD COLUMN read_at TEXT")
+
+        # Old databases: give our group mates their map spot if they have none yet
+        for email, (lat, lng) in TEAM_SPOTS.items():
+            row = conn.execute("SELECT id, profile FROM users WHERE email = ?", (email,)).fetchone()
+            if row:
+                profile = json.loads(row["profile"])
+                if profile.get("latitude") is None:
+                    profile["latitude"], profile["longitude"] = lat, lng
+                    conn.execute("UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), row["id"]))
+
         empty = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
         if empty:
             for username, email, password, fields in TEAM:
-                profile = {**DEFAULT_PROFILE, "title": "BSIT Student", **fields, "onboarded": True}
+                lat, lng = TEAM_SPOTS[email]
+                profile = {
+                    **DEFAULT_PROFILE, "title": "BSIT Student", **fields,
+                    "latitude": lat, "longitude": lng, "onboarded": True,
+                }
                 conn.execute(
                     "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
                     (username, email, hash_password(password), json.dumps(profile)),
@@ -203,6 +231,15 @@ class RegisterBody(BaseModel):
 
 class LoginBody(BaseModel):
     email: str
+    password: str
+
+
+class ReadBody(BaseModel):
+    reader_id: int  # me
+    other_id: int  # the person whose messages I just read
+
+
+class DeleteAccountBody(BaseModel):
     password: str
 
 
@@ -289,6 +326,27 @@ def change_password(user_id: int, body: PasswordBody):
             (hash_password(body.new_password), user_id),
         )
         return {"changed": True}
+
+
+@app.post("/users/{user_id}/delete-account")
+def delete_account(user_id: int, body: DeleteAccountBody):
+    """Settings -> Delete account. Needs the password. Removes the profile,
+    likes, blocks, messages, reactions (ON DELETE CASCADE) and uploaded photos."""
+    with db() as conn:
+        row = get_user_row(conn, user_id)
+        if row["password_hash"] != hash_password(body.password):
+            raise HTTPException(status_code=400, detail="Your password is incorrect.")
+        profile = {**DEFAULT_PROFILE, **json.loads(row["profile"])}
+        files = [profile["avatar"], profile["verificationPhoto"], *profile["photos"]]
+        files += [r[0] for r in conn.execute(
+            "SELECT image FROM messages WHERE sender_id = ? AND image IS NOT NULL", (user_id,)
+        )]
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    # delete this user's photos from the uploads folder
+    for path in files:
+        if isinstance(path, str) and path.startswith("/uploads/"):
+            (UPLOADS / Path(path).name).unlink(missing_ok=True)
+    return {"deleted": True, "id": str(user_id)}
 
 
 # ---- users (CRUD)
@@ -417,6 +475,7 @@ def message_json(row, reactions=None) -> dict:
         "text": row["text"],
         "image": row["image"],
         "reactions": reactions or {},  # { "userId": "love", ... }
+        "seen": row["read_at"] is not None,  # the receiver opened the chat
         "createdAt": row["created_at"],
         "time": created.strftime("%I:%M %p").lstrip("0"),  # "3:07 PM"
     }
@@ -473,6 +532,19 @@ def send_message(body: MessageBody):
         return message_json(row)
 
 
+# ---- unread / seen
+
+@app.post("/messages/read")
+def mark_read(body: ReadBody):
+    """I opened the chat: all messages the other person sent me are now 'seen'."""
+    with db() as conn:
+        cursor = conn.execute(
+            "UPDATE messages SET read_at = ? WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL",
+            (datetime.now().isoformat(timespec="seconds"), body.other_id, body.reader_id),
+        )
+        return {"marked": cursor.rowcount}
+
+
 # ---- reactions (long press a message: love, like, haha, wow, sad, angry)
 
 @app.post("/messages/{message_id}/reactions", status_code=201)
@@ -516,8 +588,17 @@ def get_inbox(user_id: int):
                ) ORDER BY id DESC""",
             (user_id, user_id, user_id),
         ).fetchall()
+        unread = dict(conn.execute(
+            """SELECT sender_id, COUNT(*) FROM messages
+               WHERE receiver_id = ? AND read_at IS NULL GROUP BY sender_id""",
+            (user_id,),
+        ).fetchall())
         inbox = []
         for row in rows:
             other = row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
-            inbox.append({"otherId": str(other), "lastMessage": message_json(row)})
+            inbox.append({
+                "otherId": str(other),
+                "lastMessage": message_json(row),
+                "unread": unread.get(other, 0),  # messages from them I haven't read
+            })
         return inbox
