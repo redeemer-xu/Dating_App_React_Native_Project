@@ -30,7 +30,6 @@ export default function RootLayout() {
                     <Stack.Screen name="register" />
                     <Stack.Screen name="onboarding" />
                     <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="profile/me" />
                     {/* "only once": tapping twice never opens the same
                         profile or chat twice (then Back works the first time) */}
                     <Stack.Screen
