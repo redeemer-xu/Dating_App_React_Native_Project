@@ -42,7 +42,8 @@ export function AuthProvider({ children }) {
     loadSavedUser();
   };
 
-  const remember = (user) => AsyncStorage.setItem(STORAGE_KEY, String(user.id)).catch(() => {});
+  const remember = (user) =>
+    AsyncStorage.setItem(STORAGE_KEY, String(user.id)).catch(() => {});
 
   // POST /login -> the server checks the email + password
   const login = async (email, password) => {
@@ -67,13 +68,10 @@ export function AuthProvider({ children }) {
     AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
   };
 
-  const isLoggedIn = currentUser !== null;
-
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        isLoggedIn,
         restoring,
         restoreError,
         retryRestore,
