@@ -1,4 +1,5 @@
 import { router, useFocusEffect } from "expo-router";
+import { Clock } from "lucide-react-native";
 import { useCallback } from "react";
 import {
   Alert,
@@ -22,8 +23,9 @@ export default function MatchesScreen() {
   const styles = makeStyles(colors);
   const { currentUser } = useAuth();
   const { getProfile, refreshProfiles } = useProfiles();
-  const { getInbox, loadInbox, chatError } = useChat();
-  const { matchIds, removeMatch, isHidden, admirerIds, refreshMatches } = useMatches();
+  const { getInbox, loadInbox, deleteChat, chatError } = useChat();
+  const { matchIds, mutualIds, removeMatch, isHidden, admirerIds, refreshMatches } =
+    useMatches();
   const me = currentUser?.id;
 
   // While this tab is open: get the newest messages, likes and profiles,
@@ -43,9 +45,12 @@ export default function MatchesScreen() {
   );
 
   // turn the saved ids into full profiles (name, avatar...)
-  const sparks = matchIds
-    .map((id) => getProfile(id))
-    .filter((p) => p && p.id !== me && !isHidden(p.id));
+  const toProfiles = (ids) =>
+    ids.map((id) => getProfile(id)).filter((p) => p && p.id !== me && !isHidden(p.id));
+
+  // Matches = we both liked each other. Pending = I liked them, waiting for them.
+  const matches = toProfiles(mutualIds);
+  const pending = toProfiles(matchIds.filter((id) => !mutualIds.includes(id)));
 
   // my conversations, newest first (also messages people sent ME)
   const inbox = getInbox()
@@ -54,6 +59,23 @@ export default function MatchesScreen() {
 
   // people who liked me (and I have not liked back yet), shown clearly
   const likedYou = admirerIds.map((id) => getProfile(id)).filter(Boolean);
+
+  const confirmDeleteChat = (profile) => {
+    Alert.alert(
+      "Delete chat with " + profile.name + "?",
+      "The chat is deleted only for you. " +
+        profile.name +
+        " still has it, and you stay matched.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteChat(profile.id),
+        },
+      ],
+    );
+  };
 
   const confirmUnmatch = (spark) => {
     Alert.alert(
@@ -80,8 +102,8 @@ export default function MatchesScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
           {chatError ? <Text style={styles.errorText}>{chatError}</Text> : null}
 
-          <Text style={styles.sectionTitle}>New sparks</Text>
-          {sparks.length > 0 ? (
+          <Text style={styles.sectionTitle}>Your matches</Text>
+          {matches.length > 0 ? (
             <Text style={styles.hint}>Hold a profile to unmatch</Text>
           ) : null}
           <ScrollView
@@ -89,12 +111,12 @@ export default function MatchesScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.sparkRow}
           >
-            {sparks.length === 0 ? (
+            {matches.length === 0 ? (
               <Text style={styles.emptyText}>
                 No matches yet. Go like someone in Discover!
               </Text>
             ) : null}
-            {sparks.map((spark) => (
+            {matches.map((spark) => (
               <TouchableOpacity
                 key={spark.id}
                 onPress={() => router.push("/chat/" + spark.id)}
@@ -106,7 +128,43 @@ export default function MatchesScreen() {
             ))}
           </ScrollView>
 
+          {/* people I liked who have not liked me back yet */}
+          {pending.length > 0 ? (
+            <>
+              <View style={styles.pendingHeading}>
+                <Text style={styles.sectionTitle}>Pending</Text>
+                <Text style={styles.caption}>Waiting for them to like you back</Text>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.sparkRow}
+              >
+                {pending.map((person) => (
+                  <TouchableOpacity
+                    key={person.id}
+                    accessibilityLabel={person.name + ", pending"}
+                    onPress={() => router.push("/profile/" + person.id)}
+                  >
+                    <View>
+                      <View style={styles.pendingPhoto}>
+                        <Avatar uri={person.avatar} name={person.name} size={62} />
+                      </View>
+                      <View style={styles.clockBadge}>
+                        <Clock size={12} color="#FFFFFF" />
+                      </View>
+                    </View>
+                    <Text style={styles.sparkName}>{person.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+          ) : null}
+
           <Text style={styles.sectionTitle}>Messages</Text>
+          {inbox.length > 0 ? (
+            <Text style={styles.hint}>Hold a chat to delete it</Text>
+          ) : null}
           {inbox.length === 0 ? (
             <Text style={styles.emptyText}>
               No messages yet. Say hi to someone!
@@ -117,6 +175,7 @@ export default function MatchesScreen() {
               key={otherId}
               style={styles.inboxRow}
               onPress={() => router.push("/chat/" + otherId)}
+              onLongPress={() => confirmDeleteChat(profile)}
             >
               <Avatar uri={profile.avatar} name={profile.name} size={52} />
               <View style={styles.inboxText}>
@@ -228,6 +287,27 @@ const makeStyles = (colors) =>
     fontSize: 12,
     textAlign: "center",
     marginTop: 6,
+  },
+  pendingHeading: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+  },
+  pendingPhoto: {
+    opacity: 0.55, // faded = still waiting
+  },
+  clockBadge: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
   },
   matchesHeading: {
     marginTop: 28,

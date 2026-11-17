@@ -208,7 +208,8 @@ export default function ChatScreen() {
     setMenuOpen(false);
     Alert.alert(
       "Block or report " + other.name + "?",
-      "You won't see each other in Discover, Matches or Messages anymore.",
+      "You won't see each other in Discover, Matches or Messages anymore. " +
+        "This chat will be deleted for you.",
       [
         { text: "Cancel", style: "cancel" },
         {

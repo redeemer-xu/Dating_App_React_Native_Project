@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import {
+  apiDeleteChat,
   apiDeleteMessage,
   apiGetInbox,
   apiGetMessages,
@@ -105,6 +106,22 @@ export function ChatProvider({ children }) {
     }
   };
 
+  // Delete the whole chat, only for me. It comes back if a new message arrives.
+  const deleteChat = async (otherId) => {
+    const id = String(otherId);
+    change((c) => {
+      const conversations = { ...c.conversations };
+      delete conversations[id];
+      return { ...c, conversations, inbox: c.inbox.filter((item) => item.otherId !== id) };
+    });
+    try {
+      await apiDeleteChat(me, id);
+    } catch (err) {
+      change((c) => ({ ...c, error: err.message }));
+      loadInbox(); // undo: get the real list again
+    }
+  };
+
   // React to a message. Picking the same reaction again removes it.
   const reactToMessage = async (otherId, message, reaction) => {
     const removing = message.reactions?.[me] === reaction;
@@ -140,6 +157,7 @@ export function ChatProvider({ children }) {
         loadInbox,
         sendMessage,
         deleteMessage,
+        deleteChat,
         reactToMessage,
         unreadTotal,
         chatError: mine.error,

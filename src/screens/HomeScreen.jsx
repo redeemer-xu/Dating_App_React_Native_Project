@@ -11,27 +11,34 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Avatar from "../components/Avatar";
-import VerifiedBadge from "../components/VerifiedBadge";
 import Button from "../components/Button";
 import DiscoverySettingsModal from "../components/DiscoverySettingsModal";
 import GradientBackground from "../components/GradientBackground";
 import MatchOverlay from "../components/MatchOverlay";
 import ScreenHeader from "../components/ScreenHeader";
 import SwipeDeck from "../components/SwipeDeck";
+import VerifiedBadge from "../components/VerifiedBadge";
 import { useAuth } from "../context/AuthContext";
 import { useMatches } from "../context/MatchesContext";
 import { useProfiles } from "../context/ProfilesContext";
-import { defaultDiscoveryFilters } from "../data/mockData";
 import { useTheme } from "../context/ThemeContext";
+import { defaultDiscoveryFilters } from "../data/mockData";
 import { kmBetween } from "../utils/distance";
 
 export default function HomeScreen() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { currentUser: user } = useAuth();
-  const { addMatch, isHidden, matchIds, refreshMatches, unseenLikes, likeRequests } =
-    useMatches();
-  const { profiles, loading, error, refreshProfiles, saveProfile } = useProfiles();
+  const {
+    addMatch,
+    isHidden,
+    matchIds,
+    refreshMatches,
+    unseenLikes,
+    likeRequests,
+  } = useMatches();
+  const { profiles, loading, error, refreshProfiles, saveProfile } =
+    useProfiles();
 
   // Every time you open Discover: get the newest profiles from the server
   // (so people who just signed up show up)
@@ -42,7 +49,7 @@ export default function HomeScreen() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
-  const [seenIds, setSeenIds] = useState([]); // people you already liked or passed
+  const [seenIds, setSeenIds] = useState([]); // people you passed (swiped left)
   // "Show Me" starts with what you picked in onboarding
   const [filters, setFilters] = useState(() => ({
     ...defaultDiscoveryFilters,
@@ -85,8 +92,9 @@ export default function HomeScreen() {
     if (filters.verifiedOnly && !p.verified) return false;
     return true;
   });
-  // 2) ...and that you haven't liked or passed yet
-  // (liked people stay hidden even after you log out and back in)
+  // 2) ...and that you haven't liked or passed yet.
+  // Liked people are hidden by matchIds, so if you unmatch or undo a like,
+  // they come back to Discover right away.
   const visibleProfiles = matchingFilters.filter(
     (p) => !seenIds.includes(p.id) && !matchIds.includes(p.id),
   );
@@ -105,8 +113,7 @@ export default function HomeScreen() {
     if (!profile) return;
     // did they already like me? then liking them back = a real match
     const theyLikedMe = likeRequests.some((r) => r.fromId === profile.id);
-    addMatch(profile.id); // goes to the Matches tab
-    markSeen(profile.id); // next person shows up
+    addMatch(profile.id); // goes to the Matches tab, and the next person shows up
     if (theyLikedMe) setMatchedUser(profile); // pop-up "It's a Match!"
   };
 
@@ -205,7 +212,11 @@ export default function HomeScreen() {
             <Text style={styles.emptyTitle}>Can&apos;t load profiles</Text>
             <Text style={styles.emptyText}>{error}</Text>
             <View style={styles.startOverWrap}>
-              <Button title="Try again" variant="accent" onPress={refreshProfiles} />
+              <Button
+                title="Try again"
+                variant="accent"
+                onPress={refreshProfiles}
+              />
             </View>
           </View>
         ) : loading && profiles.length === 0 ? (
@@ -282,149 +293,149 @@ export default function HomeScreen() {
 
 const makeStyles = (colors) =>
   StyleSheet.create({
-  searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    paddingHorizontal: 14,
-    height: 46,
-    marginBottom: 14,
-  },
-  searchInput: {
-    flex: 1,
-    color: colors.textOnDark,
-    fontSize: 15,
-    paddingVertical: 0,
-  },
-  results: {
-    flex: 1,
-  },
-  resultsContent: {
-    paddingBottom: 20,
-  },
-  noResults: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: 30,
-  },
-  resultRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  resultText: {
-    flex: 1,
-  },
-  resultNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  resultName: {
-    color: colors.textOnDark,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  resultTags: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 13,
-    marginTop: 2,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 20,
-  },
-  emptyTitle: {
-    color: colors.textOnDark,
-    fontSize: 20,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  startOverWrap: {
-    width: 220,
-    marginTop: 12,
-  },
-  emptyText: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 15,
-    textAlign: "center",
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  headingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
-    gap: 12,
-  },
-  heading: {
-    flex: 1,
-  },
-  filterGap: {
-    marginLeft: 8,
-  },
-  bellBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    paddingHorizontal: 4,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bellBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "800",
-  },
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 1.4,
-    marginBottom: 4,
-  },
-  title: {
-    color: colors.textOnDark,
-    fontSize: 28,
-    fontWeight: "800",
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingBottom: 8,
-  },
-  statusText: {
-    color: colors.textOnDarkMuted,
-    fontSize: 12,
-  },
-});
+    searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.divider,
+      paddingHorizontal: 14,
+      height: 46,
+      marginBottom: 14,
+    },
+    searchInput: {
+      flex: 1,
+      color: colors.textOnDark,
+      fontSize: 15,
+      paddingVertical: 0,
+    },
+    results: {
+      flex: 1,
+    },
+    resultsContent: {
+      paddingBottom: 20,
+    },
+    noResults: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 15,
+      textAlign: "center",
+      marginTop: 30,
+    },
+    resultRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      paddingVertical: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.divider,
+    },
+    resultText: {
+      flex: 1,
+    },
+    resultNameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    resultName: {
+      color: colors.textOnDark,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    resultTags: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 13,
+      marginTop: 2,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingHorizontal: 20,
+    },
+    emptyTitle: {
+      color: colors.textOnDark,
+      fontSize: 20,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    startOverWrap: {
+      width: 220,
+      marginTop: 12,
+    },
+    emptyText: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 15,
+      textAlign: "center",
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    headingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 14,
+      gap: 12,
+    },
+    heading: {
+      flex: 1,
+    },
+    filterGap: {
+      marginLeft: 8,
+    },
+    bellBadge: {
+      position: "absolute",
+      top: -6,
+      right: -6,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      paddingHorizontal: 4,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    bellBadgeText: {
+      color: "#FFFFFF",
+      fontSize: 10,
+      fontWeight: "800",
+    },
+    filterButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.divider,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    eyebrow: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: "800",
+      letterSpacing: 1.4,
+      marginBottom: 4,
+    },
+    title: {
+      color: colors.textOnDark,
+      fontSize: 28,
+      fontWeight: "800",
+    },
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingBottom: 8,
+    },
+    statusText: {
+      color: colors.textOnDarkMuted,
+      fontSize: 12,
+    },
+  });
