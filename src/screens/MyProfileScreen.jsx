@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ArrowLeft, Settings } from "lucide-react-native";
+import { Settings } from "lucide-react-native";
 import { useState } from "react";
 import {
   Alert,
@@ -23,8 +23,8 @@ import { useProfiles } from "../context/ProfilesContext";
 import { useTheme } from "../context/ThemeContext";
 import { takeSelfie } from "../utils/pickImage";
 
-// isTab = opened from the bottom Profile tab (then there is no back arrow)
-export default function MyProfileScreen({ isTab = false }) {
+// Your own profile (the "Profile" tab at the bottom)
+export default function MyProfileScreen() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { currentUser: user } = useAuth();
@@ -38,7 +38,10 @@ export default function MyProfileScreen({ isTab = false }) {
       if (!selfie) return; // closed the camera
       setVerifying(true);
       await saveProfile(user.id, { verificationPhoto: selfie, verified: true });
-      Alert.alert("You're verified!", "People now see a blue check on your profile.");
+      Alert.alert(
+        "You're verified!",
+        "People now see a blue check on your profile.",
+      );
     } catch (err) {
       Alert.alert("Could not verify", err.message);
     } finally {
@@ -58,16 +61,8 @@ export default function MyProfileScreen({ isTab = false }) {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          {isTab ? (
-            <View style={styles.iconButton} />
-          ) : (
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.iconButton}
-            >
-              <ArrowLeft size={22} color={colors.textOnDark} />
-            </TouchableOpacity>
-          )}
+          {/* empty box on the left so "Profile" stays in the middle */}
+          <View style={styles.iconButton} />
           <Text style={styles.headerTitle}>Profile</Text>
           {/* gear = Settings (change password, theme, sign out) */}
           <TouchableOpacity
@@ -120,24 +115,18 @@ export default function MyProfileScreen({ isTab = false }) {
           <Text style={styles.sectionTitle}>About you</Text>
           <Text style={styles.bio}>{bio}</Text>
 
-          {user?.birthday ||
-          user?.lookingFor?.length ||
-          user?.showMe ? (
+          {user?.birthday || user?.lookingFor?.length || user?.showMe ? (
             <View style={styles.detailsGrid}>
               {user?.birthday ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Birthday</Text>
-                  <Text style={styles.detailValue}>
-                    {user.birthday}
-                  </Text>
+                  <Text style={styles.detailValue}>{user.birthday}</Text>
                 </View>
               ) : null}
               {user?.showMe ? (
                 <View style={styles.detailCard}>
                   <Text style={styles.detailLabel}>Show me</Text>
-                  <Text style={styles.detailValue}>
-                    {user.showMe}
-                  </Text>
+                  <Text style={styles.detailValue}>{user.showMe}</Text>
                 </View>
               ) : null}
               {user?.lookingFor?.length ? (
@@ -178,105 +167,105 @@ export default function MyProfileScreen({ isTab = false }) {
 
 const makeStyles = (colors) =>
   StyleSheet.create({
-  gallery: {
-    height: 380,
-    borderRadius: 20,
-    overflow: "hidden",
-    marginBottom: 20,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    color: colors.textOnDark,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  profileHeader: {
-    alignItems: "center",
-    paddingVertical: 18,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 12,
-  },
-  name: {
-    color: colors.textOnDark,
-    fontSize: 26,
-    fontWeight: "800",
-  },
-  verifyBox: {
-    marginBottom: 20,
-  },
-  editButton: {
-    alignSelf: "stretch",
-    marginTop: 16,
-  },
-  sectionTitle: {
-    color: colors.textOnDark,
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  bio: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  tags: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 20,
-  },
-  emptyText: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 14,
-    fontStyle: "italic",
-    marginBottom: 20,
-  },
-  detailsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 20,
-  },
-  detailCard: {
-    flexBasis: "48%",
-    backgroundColor: colors.cardAlt,
-    borderRadius: 14,
-    padding: 12,
-    minHeight: 74,
-  },
-  detailLabel: {
-    color: colors.textOnDarkSecondary,
-    fontSize: 11,
-    fontWeight: "700",
-    marginBottom: 6,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  detailValue: {
-    color: colors.textOnDark,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-});
+    gallery: {
+      height: 380,
+      borderRadius: 20,
+      overflow: "hidden",
+      marginBottom: 20,
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 10,
+    },
+    iconButton: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      color: colors.textOnDark,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    scrollContent: {
+      paddingBottom: 32,
+    },
+    profileHeader: {
+      alignItems: "center",
+      paddingVertical: 18,
+    },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 12,
+    },
+    name: {
+      color: colors.textOnDark,
+      fontSize: 26,
+      fontWeight: "800",
+    },
+    verifyBox: {
+      marginBottom: 20,
+    },
+    editButton: {
+      alignSelf: "stretch",
+      marginTop: 16,
+    },
+    sectionTitle: {
+      color: colors.textOnDark,
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 8,
+    },
+    bio: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 15,
+      lineHeight: 22,
+      marginBottom: 20,
+    },
+    tags: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginBottom: 20,
+    },
+    emptyText: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 14,
+      fontStyle: "italic",
+      marginBottom: 20,
+    },
+    detailsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+      marginBottom: 20,
+    },
+    detailCard: {
+      flexBasis: "48%",
+      backgroundColor: colors.cardAlt,
+      borderRadius: 14,
+      padding: 12,
+      minHeight: 74,
+    },
+    detailLabel: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 11,
+      fontWeight: "700",
+      marginBottom: 6,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    detailValue: {
+      color: colors.textOnDark,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+  });

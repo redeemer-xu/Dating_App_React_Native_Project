@@ -65,7 +65,9 @@ async function request(path, { method = "GET", body } = {}) {
   } catch {
     // no answer at all = the server is off, or the phone is on another WiFi
     throw new Error(
-      "Can't reach the server at " + API_URL + ". Is it running, and are you on the same WiFi/hotspot?",
+      "Can't reach the server at " +
+        API_URL +
+        ". Is it running, and are you on the same WiFi/hotspot?",
     );
   }
   const data = await response.json().catch(() => null);
@@ -86,11 +88,15 @@ async function uploadPhoto(uri) {
     data = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error("Could not read the photo. Please pick it again."));
+      reader.onerror = () =>
+        reject(new Error("Could not read the photo. Please pick it again."));
       reader.readAsDataURL(blob);
     });
   }
-  const result = await request("/upload-base64", { method: "POST", body: { data } });
+  const result = await request("/upload-base64", {
+    method: "POST",
+    body: { data },
+  });
   return result.url; // "/uploads/abc.jpg"
 }
 
@@ -106,13 +112,18 @@ async function preparePhoto(uri) {
 // ================================================================ ACCOUNTS
 // POST /login
 export async function apiLogin(email, password) {
-  return fixUser(await request("/login", { method: "POST", body: { email, password } }));
+  return fixUser(
+    await request("/login", { method: "POST", body: { email, password } }),
+  );
 }
 
 // POST /register
 export async function apiRegister(username, email, password) {
   return fixUser(
-    await request("/register", { method: "POST", body: { username, email, password } }),
+    await request("/register", {
+      method: "POST",
+      body: { username, email, password },
+    }),
   );
 }
 
@@ -150,11 +161,6 @@ export async function apiUpdateUser(id, changes) {
   return fixUser(await request("/users/" + id, { method: "PATCH", body }));
 }
 
-// DELETE /users/:id = delete account
-export async function apiDeleteUser(id) {
-  return request("/users/" + id, { method: "DELETE" });
-}
-
 // ================================================================ LIKES & BLOCKS
 // GET /users/:id/likes -> { liked: [...], likedBy: [...] }
 export function apiGetLikes(id) {
@@ -190,7 +196,9 @@ export function apiBlock(fromId, toId) {
 // ================================================================ MESSAGES
 // GET /messages?user_a=..&user_b=.. = one conversation
 export async function apiGetMessages(myId, otherId) {
-  const messages = await request("/messages?user_a=" + myId + "&user_b=" + otherId);
+  const messages = await request(
+    "/messages?user_a=" + myId + "&user_b=" + otherId,
+  );
   return messages.map(fixMessage);
 }
 
@@ -199,7 +207,12 @@ export async function apiSendMessage(myId, otherId, text, photo) {
   const image = photo ? await preparePhoto(photo) : null;
   const message = await request("/messages", {
     method: "POST",
-    body: { sender_id: Number(myId), receiver_id: Number(otherId), text, image },
+    body: {
+      sender_id: Number(myId),
+      receiver_id: Number(otherId),
+      text,
+      image,
+    },
   });
   return fixMessage(message);
 }
@@ -214,7 +227,10 @@ export function apiMarkRead(myId, otherId) {
 
 // POST /users/:id/delete-account = delete my account (needs my password)
 export function apiDeleteAccount(id, password) {
-  return request("/users/" + id + "/delete-account", { method: "POST", body: { password } });
+  return request("/users/" + id + "/delete-account", {
+    method: "POST",
+    body: { password },
+  });
 }
 
 // POST /messages/:id/reactions = react (love, like, haha, wow, sad, angry)
@@ -228,9 +244,12 @@ export async function apiReact(messageId, myId, reaction) {
 
 // DELETE /messages/:id/reactions/:userId = remove my reaction
 export async function apiRemoveReaction(messageId, myId) {
-  const message = await request("/messages/" + messageId + "/reactions/" + myId, {
-    method: "DELETE",
-  });
+  const message = await request(
+    "/messages/" + messageId + "/reactions/" + myId,
+    {
+      method: "DELETE",
+    },
+  );
   return fixMessage(message);
 }
 
@@ -242,5 +261,8 @@ export function apiDeleteMessage(messageId) {
 // GET /users/:id/inbox = my conversations, newest first
 export async function apiGetInbox(id) {
   const inbox = await request("/users/" + id + "/inbox");
-  return inbox.map((item) => ({ ...item, lastMessage: fixMessage(item.lastMessage) }));
+  return inbox.map((item) => ({
+    ...item,
+    lastMessage: fixMessage(item.lastMessage),
+  }));
 }
