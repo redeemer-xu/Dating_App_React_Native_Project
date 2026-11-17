@@ -47,7 +47,7 @@ export default function OnboardingStepThree() {
     const nextErrors = {};
 
     if (data.interests.length < MIN_INTERESTS) {
-      nextErrors.interests = `Please select at least ${MIN_INTERESTS} interests.`;
+      nextErrors.interests = "Please select at least " + MIN_INTERESTS + " interests.";
     }
 
     if (!data.promptQuestion) {

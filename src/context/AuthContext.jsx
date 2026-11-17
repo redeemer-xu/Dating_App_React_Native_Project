@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiGetUser, apiLogin, apiRegister } from "../api";
+import { apiGetUser, apiLogin, apiRegister, loadSavedServer } from "../api";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "soulsync-user-id"; // only the id is saved, never the password
@@ -10,10 +10,16 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [restoring, setRestoring] = useState(true); // true while the app checks "was I logged in?"
   const [restoreError, setRestoreError] = useState(null);
+  const [server, setServer] = useState(null); // the server address the app uses
 
   // Load the saved account: AsyncStorage gives the id, the server gives the latest profile
+  // (first the saved server address, so the app asks the right server)
   const loadSavedUser = () =>
-    AsyncStorage.getItem(STORAGE_KEY)
+    loadSavedServer()
+      .then((url) => {
+        setServer(url);
+        return AsyncStorage.getItem(STORAGE_KEY);
+      })
       .then(async (savedId) => {
         if (!savedId) return; // nobody was logged in
         try {
@@ -42,8 +48,7 @@ export function AuthProvider({ children }) {
     loadSavedUser();
   };
 
-  const remember = (user) =>
-    AsyncStorage.setItem(STORAGE_KEY, String(user.id)).catch(() => {});
+  const remember = (user) => AsyncStorage.setItem(STORAGE_KEY, String(user.id)).catch(() => {});
 
   // POST /login -> the server checks the email + password
   const login = async (email, password) => {
@@ -79,6 +84,8 @@ export function AuthProvider({ children }) {
         register,
         logout,
         setCurrentUser, // used after the server sends back an updated profile
+        server, // e.g. "http://192.168.43.120:8000"
+        setServer, // after changing it in the "Server address" pop-up
       }}
     >
       {children}

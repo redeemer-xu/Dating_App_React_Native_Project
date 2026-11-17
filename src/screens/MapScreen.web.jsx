@@ -17,25 +17,28 @@ export default function MapScreen() {
   const styles = makeStyles(colors);
   const { currentUser } = useAuth();
   const { profiles, refreshProfiles } = useProfiles();
-  const { isHidden } = useMatches();
+  const { isHidden, mutualIds, refreshMatches } = useMatches();
   const [selected, setSelected] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
       refreshProfiles();
+      refreshMatches(); // who matched with me (only they are on the map)
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
 
   const people = profiles
-    .filter((p) => p.id !== currentUser?.id && !isHidden(p.id) && p.latitude != null)
+    .filter((p) => mutualIds.includes(p.id) && !isHidden(p.id) && p.latitude != null)
     .sort((a, b) => (kmBetween(currentUser, a) ?? 0) - (kmBetween(currentUser, b) ?? 0));
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>People near you</Text>
+      <Text style={styles.title}>Your matches nearby</Text>
       <Text style={styles.subtitle}>
-        The map shows on the phone app. On the web, here is the list (nearest first).
+        {people.length > 0
+          ? "The map shows on the phone app. On the web, here is the list (nearest first)."
+          : "Match with someone to see them here."}
       </Text>
       <ScrollView contentContainerStyle={styles.list}>
         {people.map((p) => (

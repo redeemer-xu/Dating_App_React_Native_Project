@@ -27,7 +27,7 @@ export default function MapScreen() {
   const styles = makeStyles(colors);
   const { currentUser } = useAuth();
   const { profiles, refreshProfiles } = useProfiles();
-  const { isHidden } = useMatches();
+  const { isHidden, mutualIds, refreshMatches } = useMatches();
   const [selected, setSelected] = useState(null); // the pin you tapped
   const [darkFailed, setDarkFailed] = useState(false); // dark map didn't load -> use light
   const pinJustPressed = useRef(false);
@@ -36,13 +36,16 @@ export default function MapScreen() {
   useFocusEffect(
     useCallback(() => {
       refreshProfiles();
+      refreshMatches(); // who matched with me (only they are on the map)
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
 
-  // everyone with a location, except me and blocked people
+  // only MATCHES (we both liked each other) with a visible location.
+  // People who hid their location come without latitude from the server.
   const people = profiles.filter(
-    (p) => p.id !== currentUser?.id && !isHidden(p.id) && p.latitude != null,
+    (p) =>
+      mutualIds.includes(p.id) && !isHidden(p.id) && p.latitude != null,
   );
 
   // Start the map so that I AND everyone are visible (a box around all pins).
@@ -110,8 +113,12 @@ export default function MapScreen() {
 
       <SafeAreaView style={styles.top} edges={["top"]} pointerEvents="none">
         <View style={styles.titlePill}>
-          <Text style={styles.title}>People near you</Text>
-          <Text style={styles.subtitle}>{people.length} on the map</Text>
+          <Text style={styles.title}>Your matches nearby</Text>
+          <Text style={styles.subtitle}>
+            {people.length > 0
+              ? people.length + " on the map"
+              : "Match with someone to see them here"}
+          </Text>
         </View>
       </SafeAreaView>
 

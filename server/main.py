@@ -49,7 +49,6 @@ if TEAM_PHOTOS.exists():
 
 # ---------------------------------------------------------------- database
 
-
 def db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -81,6 +80,7 @@ DEFAULT_PROFILE = {
     "verificationPhoto": None,  # selfie from the front camera
     "latitude": None,  # GPS location (sent by the app)
     "longitude": None,
+    "hideLocation": False,  # True = not on anyone's map, no distance shown
     "onboarded": False,  # True after the 3 onboarding steps
 }
 
@@ -95,101 +95,41 @@ TEAM_SPOTS = {
 
 # Our group mates (added the first time the server starts)
 TEAM = [
-    (
-        "redeemer",
-        "redeemer@gmail.com",
-        "123456",
-        {
-            "name": "Redeemer",
-            "age": 22,
-            "gender": "Man",
-            "avatar": "/team/redeemer.jpg",
-            "tags": ["Coding", "Coffee", "Gaming"],
-            "bio": "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
-            "prompts": [
-                {
-                    "question": "A perfect Sunday looks like",
-                    "answer": "Zero errors in the terminal and a very long nap.",
-                }
-            ],
-        },
-    ),
-    (
-        "jastin",
-        "jastin@gmail.com",
-        "jastin123",
-        {
-            "name": "Jastin",
-            "age": 23,
-            "gender": "Man",
-            "avatar": "/team/jastin.jpg",
-            "tags": ["Tech", "Music", "Late Night"],
-            "bio": "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
-            "prompts": [
-                {
-                    "question": "My most controversial opinion",
-                    "answer": "Tabs are better than spaces, fight me.",
-                }
-            ],
-        },
-    ),
-    (
-        "jennifer",
-        "jennifer@gmail.com",
-        "jennifer123",
-        {
-            "name": "Jennifer",
-            "age": 22,
-            "gender": "Woman",
-            "avatar": "/team/barnedo.jpg",
-            "tags": ["Design", "Movies", "Coffee"],
-            "bio": "Professional deadline survivor. Will trade my notes for good conversation.",
-            "prompts": [
-                {
-                    "question": "I'll know it's a match when",
-                    "answer": "You also say 'five more minutes' and mean it.",
-                }
-            ],
-        },
-    ),
-    (
-        "shenaiah",
-        "shenaiah@gmail.com",
-        "shenaiah123",
-        {
-            "name": "Shenaiah",
-            "age": 24,
-            "gender": "Woman",
-            "avatar": "/team/sabana.jpg",
-            "tags": ["Travel", "Photography", "Music"],
-            "bio": "Here for the good vibes and the group projects that somehow work out.",
-            "prompts": [
-                {
-                    "question": "The best way to win me over is",
-                    "answer": "Bring snacks to our group meeting.",
-                }
-            ],
-        },
-    ),
-    (
-        "tthrystan",
-        "tthrystan@gmail.com",
-        "tthrystan123",
-        {
-            "name": "Tthrystan",
-            "age": 23,
-            "gender": "Man",
-            "avatar": "/team/amomas.jpeg",
-            "tags": ["Gaming", "Tech", "Fitness"],
-            "bio": "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
-            "prompts": [
-                {
-                    "question": "Together we could",
-                    "answer": "Win the group project and the late-night game.",
-                }
-            ],
-        },
-    ),
+    ("redeemer", "redeemer@gmail.com", "123456", {
+        "name": "Redeemer", "age": 22, "gender": "Man",
+        "avatar": "/team/redeemer.jpg", "tags": ["Coding", "Coffee", "Gaming"],
+        "bio": "Group creator and part-time bug hunter. Fueled by coffee and one more console.log.",
+        "prompts": [{"question": "A perfect Sunday looks like",
+                     "answer": "Zero errors in the terminal and a very long nap."}],
+    }),
+    ("jastin", "jastin@gmail.com", "jastin123", {
+        "name": "Jastin", "age": 23, "gender": "Man",
+        "avatar": "/team/jastin.jpg", "tags": ["Tech", "Music", "Late Night"],
+        "bio": "Code by day, snacks by night. Ask me about my git commits (I will say 'fix').",
+        "prompts": [{"question": "My most controversial opinion",
+                     "answer": "Tabs are better than spaces, fight me."}],
+    }),
+    ("jennifer", "jennifer@gmail.com", "jennifer123", {
+        "name": "Jennifer", "age": 22, "gender": "Woman",
+        "avatar": "/team/barnedo.jpg", "tags": ["Design", "Movies", "Coffee"],
+        "bio": "Professional deadline survivor. Will trade my notes for good conversation.",
+        "prompts": [{"question": "I'll know it's a match when",
+                     "answer": "You also say 'five more minutes' and mean it."}],
+    }),
+    ("shenaiah", "shenaiah@gmail.com", "shenaiah123", {
+        "name": "Shenaiah", "age": 24, "gender": "Woman",
+        "avatar": "/team/sabana.jpg", "tags": ["Travel", "Photography", "Music"],
+        "bio": "Here for the good vibes and the group projects that somehow work out.",
+        "prompts": [{"question": "The best way to win me over is",
+                     "answer": "Bring snacks to our group meeting."}],
+    }),
+    ("tthrystan", "tthrystan@gmail.com", "tthrystan123", {
+        "name": "Tthrystan", "age": 23, "gender": "Man",
+        "avatar": "/team/amomas.jpeg", "tags": ["Gaming", "Tech", "Fitness"],
+        "bio": "Calm on the outside, debugging on the inside. Always down for a quick game after class.",
+        "prompts": [{"question": "Together we could",
+                     "answer": "Win the group project and the late-night game."}],
+    }),
 ]
 
 
@@ -235,31 +175,29 @@ def setup_database():
         if "read_at" not in columns:  # when the other person opened the chat
             conn.execute("ALTER TABLE messages ADD COLUMN read_at TEXT")
 
+        # Likes got 2 new columns for the "X liked you" notifications
+        like_columns = [c["name"] for c in conn.execute("PRAGMA table_info(likes)")]
+        if "created_at" not in like_columns:
+            conn.execute("ALTER TABLE likes ADD COLUMN created_at TEXT")
+        if "seen" not in like_columns:  # 1 = the person I liked saw the notification
+            conn.execute("ALTER TABLE likes ADD COLUMN seen INTEGER NOT NULL DEFAULT 0")
+
         # Old databases: give our group mates their map spot if they have none yet
         for email, (lat, lng) in TEAM_SPOTS.items():
-            row = conn.execute(
-                "SELECT id, profile FROM users WHERE email = ?", (email,)
-            ).fetchone()
+            row = conn.execute("SELECT id, profile FROM users WHERE email = ?", (email,)).fetchone()
             if row:
                 profile = json.loads(row["profile"])
                 if profile.get("latitude") is None:
                     profile["latitude"], profile["longitude"] = lat, lng
-                    conn.execute(
-                        "UPDATE users SET profile = ? WHERE id = ?",
-                        (json.dumps(profile), row["id"]),
-                    )
+                    conn.execute("UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), row["id"]))
 
         empty = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
         if empty:
             for username, email, password, fields in TEAM:
                 lat, lng = TEAM_SPOTS[email]
                 profile = {
-                    **DEFAULT_PROFILE,
-                    "title": "BSIT Student",
-                    **fields,
-                    "latitude": lat,
-                    "longitude": lng,
-                    "onboarded": True,
+                    **DEFAULT_PROFILE, "title": "BSIT Student", **fields,
+                    "latitude": lat, "longitude": lng, "onboarded": True,
                 }
                 conn.execute(
                     "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
@@ -270,9 +208,12 @@ def setup_database():
 setup_database()
 
 
-def to_json(row) -> dict:
-    """A user row from the database -> the JSON the app gets (no password)."""
+def to_json(row, public=False) -> dict:
+    """A user row from the database -> the JSON the app gets (no password).
+    public=True: for OTHER people's eyes, so a hidden location is not sent."""
     profile = {**DEFAULT_PROFILE, **json.loads(row["profile"])}
+    if public and profile["hideLocation"]:
+        profile["latitude"] = profile["longitude"] = None
     images = [p for p in [profile["avatar"], *profile["photos"]] if p]
     return {
         "id": str(row["id"]),
@@ -292,7 +233,6 @@ def get_user_row(conn, user_id):
 
 # ---------------------------------------------------------------- request bodies
 
-
 class RegisterBody(BaseModel):
     username: str
     email: str
@@ -304,6 +244,11 @@ class LoginBody(BaseModel):
     password: str
 
 
+class LikesSeenBody(BaseModel):
+    user_id: int  # me
+    from_ids: list[int]  # the people whose likes I saw
+
+
 class ReadBody(BaseModel):
     reader_id: int  # me
     other_id: int  # the person whose messages I just read
@@ -311,6 +256,10 @@ class ReadBody(BaseModel):
 
 class DeleteAccountBody(BaseModel):
     password: str
+
+
+class InterestsBody(BaseModel):
+    tags: list[str]  # the COMPLETE new list of interests
 
 
 class PasswordBody(BaseModel):
@@ -348,7 +297,6 @@ EDITABLE = set(DEFAULT_PROFILE.keys())
 
 # ---------------------------------------------------------------- endpoints
 
-
 @app.get("/")
 def home():
     return {"message": "SoulSync API is running. Open /docs to try it."}
@@ -356,23 +304,15 @@ def home():
 
 # ---- accounts
 
-
 @app.post("/register", status_code=201)
 def register(body: RegisterBody):
     email = body.email.strip().lower()
     with db() as conn:
         if conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
-            raise HTTPException(
-                status_code=409, detail="An account with this email already exists."
-            )
+            raise HTTPException(status_code=409, detail="An account with this email already exists.")
         cursor = conn.execute(
             "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
-            (
-                body.username.strip(),
-                email,
-                hash_password(body.password),
-                json.dumps(DEFAULT_PROFILE),
-            ),
+            (body.username.strip(), email, hash_password(body.password), json.dumps(DEFAULT_PROFILE)),
         )
         return to_json(get_user_row(conn, cursor.lastrowid))
 
@@ -393,20 +333,13 @@ def login(body: LoginBody):
 def change_password(user_id: int, body: PasswordBody):
     """Settings -> Change password. The current password must be correct."""
     if len(body.new_password) < 6:
-        raise HTTPException(
-            status_code=400, detail="New password must be at least 6 characters."
-        )
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters.")
     with db() as conn:
         row = get_user_row(conn, user_id)
         if row["password_hash"] != hash_password(body.current_password):
-            raise HTTPException(
-                status_code=400, detail="Your current password is incorrect."
-            )
+            raise HTTPException(status_code=400, detail="Your current password is incorrect.")
         if body.current_password == body.new_password:
-            raise HTTPException(
-                status_code=400,
-                detail="New password must be different from the current one.",
-            )
+            raise HTTPException(status_code=400, detail="New password must be different from the current one.")
         conn.execute(
             "UPDATE users SET password_hash = ? WHERE id = ?",
             (hash_password(body.new_password), user_id),
@@ -424,13 +357,9 @@ def delete_account(user_id: int, body: DeleteAccountBody):
             raise HTTPException(status_code=400, detail="Your password is incorrect.")
         profile = {**DEFAULT_PROFILE, **json.loads(row["profile"])}
         files = [profile["avatar"], profile["verificationPhoto"], *profile["photos"]]
-        files += [
-            r[0]
-            for r in conn.execute(
-                "SELECT image FROM messages WHERE sender_id = ? AND image IS NOT NULL",
-                (user_id,),
-            )
-        ]
+        files += [r[0] for r in conn.execute(
+            "SELECT image FROM messages WHERE sender_id = ? AND image IS NOT NULL", (user_id,)
+        )]
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
     # delete this user's photos from the uploads folder
     for path in files:
@@ -441,13 +370,13 @@ def delete_account(user_id: int, body: DeleteAccountBody):
 
 # ---- users (CRUD)
 
-
 @app.get("/users")
 def list_users():
     """Everyone who finished onboarding (the app hides you and blocked people)."""
     with db() as conn:
         rows = conn.execute("SELECT * FROM users ORDER BY id").fetchall()
-        return [user for user in map(to_json, rows) if user["onboarded"]]
+        users = [to_json(row, public=True) for row in rows]
+        return [user for user in users if user["onboarded"]]
 
 
 @app.get("/users/{user_id}")
@@ -465,14 +394,27 @@ def update_user(user_id: int, changes: dict):
             if key in EDITABLE:
                 profile[key] = value
         profile["photos"] = (profile["photos"] or [])[:5]  # max 5 extra photos
-        conn.execute(
-            "UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id)
-        )
+        conn.execute("UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id))
+        return to_json(get_user_row(conn, user_id))
+
+
+# PUT vs PATCH:
+#   PATCH /users/{id}           -> change only the fields you send (the rest stays)
+#   PUT   /users/{id}/interests -> REPLACE the whole interests list with a new one
+@app.put("/users/{user_id}/interests")
+def replace_interests(user_id: int, body: InterestsBody):
+    tags = [t.strip() for t in body.tags if t.strip()]
+    if len(tags) < 3:
+        raise HTTPException(status_code=400, detail="Pick at least 3 interests.")
+    with db() as conn:
+        row = get_user_row(conn, user_id)
+        profile = {**DEFAULT_PROFILE, **json.loads(row["profile"])}
+        profile["tags"] = tags[:10]  # max 10 interests
+        conn.execute("UPDATE users SET profile = ? WHERE id = ?", (json.dumps(profile), user_id))
         return to_json(get_user_row(conn, user_id))
 
 
 # ---- photos
-
 
 # The app uses this one: the photo comes as base64 text inside normal JSON,
 # so it works the same on Android, iPhone and web.
@@ -495,47 +437,80 @@ def upload_photo_base64(body: PhotoBody):
 
 # ---- likes
 
+def is_match(conn, a, b) -> bool:
+    """A match = both liked each other."""
+    count = conn.execute(
+        "SELECT COUNT(*) FROM likes WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)",
+        (a, b, b, a),
+    ).fetchone()[0]
+    return count == 2
+
+
+def is_blocked(conn, a, b) -> bool:
+    """True if one of them blocked the other."""
+    return conn.execute(
+        "SELECT 1 FROM blocks WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)",
+        (a, b, b, a),
+    ).fetchone() is not None
+
 
 @app.get("/users/{user_id}/likes")
 def get_likes(user_id: int):
-    """liked = people I liked, likedBy = people who liked me."""
+    """liked = people I liked, likedBy = people who liked me,
+    requests = people who liked me and I have NOT liked back yet (the notifications)."""
     with db() as conn:
-        liked = [
-            str(r[0])
-            for r in conn.execute(
-                "SELECT to_id FROM likes WHERE from_id = ?", (user_id,)
-            )
+        liked = [str(r[0]) for r in conn.execute("SELECT to_id FROM likes WHERE from_id = ?", (user_id,))]
+        liked_by = [str(r[0]) for r in conn.execute("SELECT from_id FROM likes WHERE to_id = ?", (user_id,))]
+        rows = conn.execute(
+            """SELECT from_id, created_at, seen FROM likes
+               WHERE to_id = ?
+                 AND from_id NOT IN (SELECT to_id FROM likes WHERE from_id = ?)
+                 AND from_id NOT IN (SELECT to_id FROM blocks WHERE from_id = ?)
+                 AND from_id NOT IN (SELECT from_id FROM blocks WHERE to_id = ?)
+               ORDER BY created_at DESC""",
+            (user_id, user_id, user_id, user_id),
+        ).fetchall()
+        requests = [
+            {"fromId": str(r["from_id"]), "createdAt": r["created_at"], "seen": bool(r["seen"])}
+            for r in rows
         ]
-        liked_by = [
-            str(r[0])
-            for r in conn.execute(
-                "SELECT from_id FROM likes WHERE to_id = ?", (user_id,)
-            )
-        ]
-        return {"liked": liked, "likedBy": liked_by}
+        return {"liked": liked, "likedBy": liked_by, "requests": requests}
 
 
 @app.post("/likes", status_code=201)
 def add_like(body: PairBody):
     with db() as conn:
         conn.execute(
-            "INSERT OR IGNORE INTO likes (from_id, to_id) VALUES (?, ?)",
-            (body.from_id, body.to_id),
+            "INSERT OR IGNORE INTO likes (from_id, to_id, created_at) VALUES (?, ?, ?)",
+            (body.from_id, body.to_id, datetime.now().isoformat(timespec="seconds")),
         )
-        return {"from_id": str(body.from_id), "to_id": str(body.to_id)}
+        return {
+            "from_id": str(body.from_id),
+            "to_id": str(body.to_id),
+            "match": is_match(conn, body.from_id, body.to_id),  # did they already like me?
+        }
+
+
+@app.post("/likes/seen")
+def mark_likes_seen(body: LikesSeenBody):
+    """I saw the "X liked you" notification (pop-up "Later" or opened the bell list)."""
+    with db() as conn:
+        marks = ",".join("?" * len(body.from_ids)) or "NULL"
+        conn.execute(
+            f"UPDATE likes SET seen = 1 WHERE to_id = ? AND from_id IN ({marks})",
+            [body.user_id, *body.from_ids],
+        )
+        return {"seen": len(body.from_ids)}
 
 
 @app.delete("/likes/{from_id}/{to_id}")
 def remove_like(from_id: int, to_id: int):
     with db() as conn:
-        conn.execute(
-            "DELETE FROM likes WHERE from_id = ? AND to_id = ?", (from_id, to_id)
-        )
+        conn.execute("DELETE FROM likes WHERE from_id = ? AND to_id = ?", (from_id, to_id))
         return {"deleted": True}
 
 
 # ---- blocks
-
 
 @app.get("/users/{user_id}/blocks")
 def get_blocks(user_id: int):
@@ -548,22 +523,31 @@ def get_blocks(user_id: int):
         return {"hidden": [str(r[0]) for r in rows]}
 
 
+@app.get("/users/{user_id}/blocked")
+def get_blocked(user_id: int):
+    """Only the people I blocked (Settings -> Blocked users)."""
+    with db() as conn:
+        rows = conn.execute("SELECT to_id FROM blocks WHERE from_id = ? ORDER BY rowid DESC", (user_id,))
+        return {"blocked": [str(r[0]) for r in rows]}
+
+
+@app.delete("/blocks/{from_id}/{to_id}")
+def unblock_user(from_id: int, to_id: int):
+    """Unblock. Old likes are not restored: it is a fresh start."""
+    with db() as conn:
+        conn.execute("DELETE FROM blocks WHERE from_id = ? AND to_id = ?", (from_id, to_id))
+        return {"deleted": True}
+
+
 @app.post("/blocks", status_code=201)
 def block_user(body: PairBody):
     with db() as conn:
-        conn.execute(
-            "INSERT OR IGNORE INTO blocks (from_id, to_id) VALUES (?, ?)",
-            (body.from_id, body.to_id),
-        )
-        conn.execute(
-            "DELETE FROM likes WHERE from_id = ? AND to_id = ?",
-            (body.from_id, body.to_id),
-        )
+        conn.execute("INSERT OR IGNORE INTO blocks (from_id, to_id) VALUES (?, ?)", (body.from_id, body.to_id))
+        conn.execute("DELETE FROM likes WHERE from_id = ? AND to_id = ?", (body.from_id, body.to_id))
         return {"from_id": str(body.from_id), "to_id": str(body.to_id)}
 
 
 # ---- messages
-
 
 def message_json(row, reactions=None) -> dict:
     created = datetime.fromisoformat(row["created_at"])
@@ -621,26 +605,41 @@ def send_message(body: MessageBody):
     image = body.image or None
     if not text and not image:
         raise HTTPException(status_code=400, detail="Message is empty.")
+    me, other = body.sender_id, body.receiver_id
     with db() as conn:
-        get_user_row(conn, body.receiver_id)
+        receiver = get_user_row(conn, other)
+        name = json.loads(receiver["profile"]).get("name") or "them"
+        if is_blocked(conn, me, other):
+            raise HTTPException(status_code=403, detail="You can't message this person.")
+        # Message requests: not a match yet?
+        if not is_match(conn, me, other):
+            they_wrote = conn.execute(
+                "SELECT 1 FROM messages WHERE sender_id = ? AND receiver_id = ?", (other, me)
+            ).fetchone()
+            i_wrote = conn.execute(
+                "SELECT 1 FROM messages WHERE sender_id = ? AND receiver_id = ?", (me, other)
+            ).fetchone()
+            if they_wrote:
+                raise HTTPException(status_code=403, detail=f"Like {name} back to reply.")
+            if i_wrote:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"You can send more messages after {name} likes you back.",
+                )
+            # first message = a message request, and it also counts as liking them
+            conn.execute(
+                "INSERT OR IGNORE INTO likes (from_id, to_id, created_at) VALUES (?, ?, ?)",
+                (me, other, datetime.now().isoformat(timespec="seconds")),
+            )
         cursor = conn.execute(
             "INSERT INTO messages (sender_id, receiver_id, text, image, created_at) VALUES (?, ?, ?, ?, ?)",
-            (
-                body.sender_id,
-                body.receiver_id,
-                text,
-                image,
-                datetime.now().isoformat(timespec="seconds"),
-            ),
+            (body.sender_id, body.receiver_id, text, image, datetime.now().isoformat(timespec="seconds")),
         )
-        row = conn.execute(
-            "SELECT * FROM messages WHERE id = ?", (cursor.lastrowid,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM messages WHERE id = ?", (cursor.lastrowid,)).fetchone()
         return message_json(row)
 
 
 # ---- unread / seen
-
 
 @app.post("/messages/read")
 def mark_read(body: ReadBody):
@@ -648,17 +647,12 @@ def mark_read(body: ReadBody):
     with db() as conn:
         cursor = conn.execute(
             "UPDATE messages SET read_at = ? WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL",
-            (
-                datetime.now().isoformat(timespec="seconds"),
-                body.other_id,
-                body.reader_id,
-            ),
+            (datetime.now().isoformat(timespec="seconds"), body.other_id, body.reader_id),
         )
         return {"marked": cursor.rowcount}
 
 
 # ---- reactions (long press a message: love, like, haha, wow, sad, angry)
-
 
 @app.post("/messages/{message_id}/reactions", status_code=201)
 def react_to_message(message_id: int, body: ReactionBody):
@@ -678,10 +672,7 @@ def react_to_message(message_id: int, body: ReactionBody):
 def remove_reaction(message_id: int, user_id: int):
     with db() as conn:
         row = get_message_row(conn, message_id)
-        conn.execute(
-            "DELETE FROM reactions WHERE message_id = ? AND user_id = ?",
-            (message_id, user_id),
-        )
+        conn.execute("DELETE FROM reactions WHERE message_id = ? AND user_id = ?", (message_id, user_id))
         return message_json(row, get_reactions(conn, [message_id]).get(message_id))
 
 
@@ -704,23 +695,17 @@ def get_inbox(user_id: int):
                ) ORDER BY id DESC""",
             (user_id, user_id, user_id),
         ).fetchall()
-        unread = dict(
-            conn.execute(
-                """SELECT sender_id, COUNT(*) FROM messages
+        unread = dict(conn.execute(
+            """SELECT sender_id, COUNT(*) FROM messages
                WHERE receiver_id = ? AND read_at IS NULL GROUP BY sender_id""",
-                (user_id,),
-            ).fetchall()
-        )
+            (user_id,),
+        ).fetchall())
         inbox = []
         for row in rows:
-            other = (
-                row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
-            )
-            inbox.append(
-                {
-                    "otherId": str(other),
-                    "lastMessage": message_json(row),
-                    "unread": unread.get(other, 0),  # messages from them I haven't read
-                }
-            )
+            other = row["receiver_id"] if row["sender_id"] == user_id else row["sender_id"]
+            inbox.append({
+                "otherId": str(other),
+                "lastMessage": message_json(row),
+                "unread": unread.get(other, 0),  # messages from them I haven't read
+            })
         return inbox

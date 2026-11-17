@@ -72,6 +72,10 @@ export default function EditProfileScreen() {
       newErrors.name = "Name must be at least 2 characters.";
     }
 
+    if (interests.length < 3) {
+      newErrors.interests = "Pick at least 3 interests.";
+    }
+
     if (bio.length > MAX_BIO_LENGTH) {
       newErrors.bio = "Bio must be " + MAX_BIO_LENGTH + " characters or less.";
     }
@@ -87,7 +91,8 @@ export default function EditProfileScreen() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // PATCH /users/:id -> new photos are uploaded first, then everything is saved
+    // Save: new photos are uploaded first, interests use PUT (replace the list),
+    // everything else uses PATCH (change only these fields)
     setSaving(true);
     try {
       await saveProfile(currentUser.id, {
@@ -200,6 +205,9 @@ export default function EditProfileScreen() {
               />
             ))}
           </View>
+          {errors.interests ? (
+            <Text style={styles.errorText}>{errors.interests}</Text>
+          ) : null}
 
           <Text style={styles.sectionTitle}>Prompt</Text>
           <PromptPickerCard

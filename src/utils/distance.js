@@ -16,8 +16,9 @@ export function kmBetween(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-// "2.4 km away" (or the city name if we don't know the location yet)
+// "2.4 km away", "Location hidden", or the city name if we don't know it yet
 export function distanceLabel(me, other) {
+  if (other?.hideLocation) return "Location hidden";
   const km = kmBetween(me, other);
   if (km === null) return other?.location ?? "";
   if (km < 0.1) return "Very close to you";

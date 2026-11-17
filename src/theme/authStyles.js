@@ -4,9 +4,19 @@ export const makeAuthStyles = (colors) =>
   StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
     backgroundColor: 'transparent',
+  },
+
+  keyboardBox: {
+    flex: 1,
+  },
+
+  // centered when there is space, scrollable when the keyboard is open
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: 24,
   },
 
   header: {

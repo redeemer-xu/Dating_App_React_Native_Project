@@ -13,7 +13,8 @@ export function useMyLocation() {
   const myId = currentUser?.id;
 
   useEffect(() => {
-    if (!myId) return;
+    // "Hide my location" is ON -> don't read or send the GPS at all
+    if (!myId || currentUser.hideLocation) return;
     let cancelled = false;
 
     const updateLocation = async () => {
