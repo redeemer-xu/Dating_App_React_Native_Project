@@ -71,7 +71,7 @@ export default function ProfileDetailScreen() {
             </View>
             <Text style={styles.heroMeta}>{profile.title}</Text>
             <Text style={styles.heroMeta}>
-              {kmBetween(currentUser, profile) === null
+              {kmBetween(currentUser, profile) === null && !profile.hideLocation
                 ? profile.location
                 : profile.location + " · " + distanceLabel(currentUser, profile)}
             </Text>

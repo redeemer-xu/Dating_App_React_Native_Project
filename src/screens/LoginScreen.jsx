@@ -1,6 +1,14 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
@@ -60,49 +68,62 @@ export default function LoginScreen() {
   return (
     <GradientBackground>
       <SafeAreaView style={authStyles.container}>
-        <View style={authStyles.header}>
-          <Text style={authStyles.title}>Welcome Back</Text>
-          <Text style={authStyles.subtitle}>
-            Log in to continue to SoulSync
-          </Text>
-        </View>
+        {/* The keyboard pushes the form up, and you can scroll,
+            so the last box and the button are never hidden */}
+        <KeyboardAvoidingView
+          style={authStyles.keyboardBox}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <ScrollView
+            contentContainerStyle={authStyles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={authStyles.header}>
+              <Text style={authStyles.title}>Welcome Back</Text>
+              <Text style={authStyles.subtitle}>
+                Log in to continue to SoulSync
+              </Text>
+            </View>
 
-        <FormInput
-          label="Email"
-          placeholder="Enter email"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            clearError("email");
-          }}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          error={errors.email}
-        />
+            <FormInput
+              label="Email"
+              placeholder="Enter email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                clearError("email");
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              error={errors.email}
+            />
 
-        <PasswordInput
-          label="Password"
-          placeholder="Enter password"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            clearError("password");
-          }}
-          error={errors.password}
-        />
+            <PasswordInput
+              label="Password"
+              placeholder="Enter password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                clearError("password");
+              }}
+              error={errors.password}
+            />
 
-        <Button
-          title={loading ? "Logging in..." : "Login"}
-          onPress={handleLogin}
-          disabled={loading}
-        />
+            <Button
+              title={loading ? "Logging in..." : "Login"}
+              onPress={handleLogin}
+              disabled={loading}
+            />
 
-        <TouchableOpacity onPress={() => router.push("/register")}>
-          <Text style={authStyles.footerText}>
-            {"Don't have an account? "}
-            <Text style={authStyles.footerLink}>Sign up</Text>
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/register")}>
+              <Text style={authStyles.footerText}>
+                {"Don't have an account? "}
+                <Text style={authStyles.footerLink}>Sign up</Text>
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>
   );

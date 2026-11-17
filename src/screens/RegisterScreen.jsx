@@ -1,6 +1,14 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
@@ -81,72 +89,85 @@ export default function RegisterScreen() {
   return (
     <GradientBackground>
       <SafeAreaView style={authStyles.container}>
-        <View style={authStyles.header}>
-          <Text style={authStyles.title}>Create Account</Text>
-          <Text style={authStyles.subtitle}>
-            Sign up to get started with SoulSync
-          </Text>
-        </View>
+        {/* The keyboard pushes the form up, and you can scroll,
+            so the last box and the button are never hidden */}
+        <KeyboardAvoidingView
+          style={authStyles.keyboardBox}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <ScrollView
+            contentContainerStyle={authStyles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={authStyles.header}>
+              <Text style={authStyles.title}>Create Account</Text>
+              <Text style={authStyles.subtitle}>
+                Sign up to get started with SoulSync
+              </Text>
+            </View>
 
-        <FormInput
-          label="Username"
-          placeholder="Enter username"
-          value={username}
-          onChangeText={(text) => {
-            setUsername(text);
-            clearError("username");
-          }}
-          autoCapitalize="none"
-          error={errors.username}
-        />
+            <FormInput
+              label="Username"
+              placeholder="Enter username"
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text);
+                clearError("username");
+              }}
+              autoCapitalize="none"
+              error={errors.username}
+            />
 
-        <FormInput
-          label="Email"
-          placeholder="Enter email"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            clearError("email");
-          }}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          error={errors.email}
-        />
+            <FormInput
+              label="Email"
+              placeholder="Enter email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                clearError("email");
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              error={errors.email}
+            />
 
-        <PasswordInput
-          label="Password"
-          placeholder="Enter password"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            clearError("password");
-          }}
-          error={errors.password}
-        />
+            <PasswordInput
+              label="Password"
+              placeholder="Enter password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                clearError("password");
+              }}
+              error={errors.password}
+            />
 
-        <PasswordInput
-          label="Confirm Password"
-          placeholder="Re-enter password"
-          value={confirmPassword}
-          onChangeText={(text) => {
-            setConfirmPassword(text);
-            clearError("confirmPassword");
-          }}
-          error={errors.confirmPassword}
-        />
+            <PasswordInput
+              label="Confirm Password"
+              placeholder="Re-enter password"
+              value={confirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+                clearError("confirmPassword");
+              }}
+              error={errors.confirmPassword}
+            />
 
-        <Button
-          title={loading ? "Creating account..." : "Sign Up"}
-          onPress={handleRegister}
-          disabled={loading}
-        />
+            <Button
+              title={loading ? "Creating account..." : "Sign Up"}
+              onPress={handleRegister}
+              disabled={loading}
+            />
 
-        <TouchableOpacity onPress={() => router.push("/login")}>
-          <Text style={authStyles.footerText}>
-            Already have an account?{" "}
-            <Text style={authStyles.footerLink}>Log in</Text>
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/login")}>
+              <Text style={authStyles.footerText}>
+                Already have an account?{" "}
+                <Text style={authStyles.footerLink}>Log in</Text>
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>
   );

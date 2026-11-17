@@ -4,13 +4,16 @@ import {
   apiGetBlocks,
   apiGetLikes,
   apiLike,
+  apiMarkLikesSeen,
+  apiUnblock,
   apiUnlike,
 } from "../api";
 import { useAuth } from "./AuthContext";
 
 const MatchesContext = createContext(null);
 
-const EMPTY = { owner: null, liked: [], likedBy: [], hidden: [] };
+// requests = people who liked me and I haven't liked back (the notifications)
+const EMPTY = { owner: null, liked: [], likedBy: [], hidden: [], requests: [] };
 
 // Likes and blocks of the logged-in user, saved on the server.
 export function MatchesProvider({ children }) {
@@ -50,12 +53,25 @@ export function MatchesProvider({ children }) {
       owner: me,
     }));
 
-  // POST /likes
+  // POST /likes (also "Like back": then their notification is done)
   const addMatch = (id) => {
-    change((d) =>
-      d.liked.includes(id) ? d : { ...d, liked: [id, ...d.liked] },
-    );
-    apiLike(me, id).catch(refreshMatches);
+    change((d) => ({
+      ...d,
+      liked: d.liked.includes(id) ? d.liked : [id, ...d.liked],
+      requests: d.requests.filter((r) => r.fromId !== id),
+    }));
+    // after the server saved it, refresh: maybe it's a match now
+    return apiLike(me, id).then(refreshMatches, refreshMatches);
+  };
+
+  // POST /likes/seen: the pop-up's "Later", or opening the bell list
+  const markLikesSeen = (ids) => {
+    if (ids.length === 0) return;
+    change((d) => ({
+      ...d,
+      requests: d.requests.map((r) => (ids.includes(r.fromId) ? { ...r, seen: true } : r)),
+    }));
+    apiMarkLikesSeen(me, ids).catch(() => {});
   };
 
   // DELETE /likes/:me/:id
@@ -74,7 +90,18 @@ export function MatchesProvider({ children }) {
     apiBlock(me, id).catch(refreshMatches);
   };
 
+  // DELETE /blocks/:me/:id (Settings -> Blocked users)
+  const unblockUser = async (id) => {
+    await apiUnblock(me, id);
+    await refreshMatches(); // they can show up in Discover again
+  };
+
   const matchIds = mine.liked; // people I liked
+  // both liked each other = a real match (only they show on the Map)
+  const mutualIds = mine.liked.filter((id) => mine.likedBy.includes(id));
+  // "X liked you" notifications (newest first) and how many are new
+  const likeRequests = mine.requests.filter((r) => !mine.hidden.includes(r.fromId));
+  const unseenLikes = likeRequests.filter((r) => !r.seen).length;
   const isHidden = (id) => mine.hidden.includes(String(id)); // blocked either way
   // people who liked me, that I have not liked back yet
   const admirerIds = mine.likedBy.filter(
@@ -88,6 +115,11 @@ export function MatchesProvider({ children }) {
         addMatch,
         removeMatch,
         blockUser,
+        unblockUser,
+        mutualIds,
+        likeRequests,
+        unseenLikes,
+        markLikesSeen,
         isHidden,
         admirerIds,
         refreshMatches,

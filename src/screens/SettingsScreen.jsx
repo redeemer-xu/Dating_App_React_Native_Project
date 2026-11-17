@@ -4,19 +4,23 @@ import {
   ChevronDown,
   ChevronRight,
   Lock,
+  MapPinOff,
   LogOut,
   Mail,
   Moon,
+  Server,
   Smartphone,
   Sun,
   Trash2,
   User,
+  UserX,
 } from "lucide-react-native";
 import { useState } from "react";
 import {
   Alert,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -26,7 +30,9 @@ import { apiChangePassword, apiDeleteAccount } from "../api";
 import Button from "../components/Button";
 import GradientBackground from "../components/GradientBackground";
 import PasswordInput from "../components/PasswordInput";
+import ServerSettingsModal from "../components/ServerSettingsModal";
 import { useAuth } from "../context/AuthContext";
+import { useProfiles } from "../context/ProfilesContext";
 import { useTheme } from "../context/ThemeContext";
 
 // The 3 theme choices
@@ -39,7 +45,24 @@ const THEMES = [
 export default function SettingsScreen() {
   const { colors, mode, setMode } = useTheme();
   const styles = makeStyles(colors);
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, server, setServer } = useAuth();
+
+  // ---- server address (where uvicorn runs) ----
+  const [serverOpen, setServerOpen] = useState(false);
+
+  // ---- privacy: hide my location (PATCH /users/:id { hideLocation }) ----
+  const { saveProfile } = useProfiles();
+  const [hidingSaving, setHidingSaving] = useState(false);
+  const toggleHideLocation = async (hide) => {
+    setHidingSaving(true);
+    try {
+      await saveProfile(currentUser.id, { hideLocation: hide });
+    } catch (err) {
+      Alert.alert("Could not save", err.message);
+    } finally {
+      setHidingSaving(false);
+    }
+  };
 
   // ---- change password form ----
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -168,6 +191,60 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </View>
+
+          {/* ---------------- PRIVACY ---------------- */}
+          <Text style={styles.sectionLabel}>PRIVACY</Text>
+          <View style={styles.card}>
+            <View style={styles.row}>
+              <MapPinOff size={20} color={colors.accent} />
+              <View style={styles.rowTextBox}>
+                <Text style={[styles.rowTitle, styles.noFlex]}>Hide my location</Text>
+                <Text style={styles.rowHint}>
+                  You won&apos;t be on anyone&apos;s map, and people see &quot;Location
+                  hidden&quot; instead of your distance.
+                </Text>
+              </View>
+              <Switch
+                value={!!currentUser?.hideLocation}
+                onValueChange={toggleHideLocation}
+                disabled={hidingSaving}
+                trackColor={{ true: colors.accent, false: colors.divider }}
+                thumbColor="#FFFFFF"
+                accessibilityLabel="Hide my location"
+              />
+            </View>
+            <View style={styles.divider} />
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={() => router.push("/blocked")}
+            >
+              <UserX size={20} color={colors.accent} />
+              <Text style={styles.rowTitle}>Blocked users</Text>
+              <ChevronRight size={20} color={colors.textOnDarkMuted} />
+            </TouchableOpacity>
+          </View>
+
+          {/* ---------------- CONNECTION ---------------- */}
+          <Text style={styles.sectionLabel}>CONNECTION</Text>
+          <TouchableOpacity
+            style={[styles.card, styles.row]}
+            activeOpacity={0.7}
+            onPress={() => setServerOpen(true)}
+          >
+            <Server size={20} color={colors.accent} />
+            <Text style={styles.rowTitle}>Server address</Text>
+            <Text style={styles.rowValue} numberOfLines={1}>
+              {(server ?? "").replace(/^https?:\/\//, "")}
+            </Text>
+            <ChevronRight size={20} color={colors.textOnDarkMuted} />
+          </TouchableOpacity>
+          <ServerSettingsModal
+            key={serverOpen ? "open" : "closed"}
+            visible={serverOpen}
+            onClose={() => setServerOpen(false)}
+            onSaved={setServer}
+          />
 
           {/* ---------------- SECURITY ---------------- */}
           <Text style={styles.sectionLabel}>SECURITY</Text>
@@ -367,6 +444,18 @@ const makeStyles = (colors) =>
       maxWidth: "55%",
       color: colors.textOnDarkSecondary,
       fontSize: 14,
+    },
+    noFlex: {
+      flex: 0,
+    },
+    rowTextBox: {
+      flex: 1,
+      gap: 2,
+    },
+    rowHint: {
+      color: colors.textOnDarkMuted,
+      fontSize: 12,
+      lineHeight: 17,
     },
     divider: {
       height: StyleSheet.hairlineWidth,

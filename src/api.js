@@ -1,15 +1,19 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 // ------------------------------------------------------------------
 // WHERE IS OUR FASTAPI SERVER?
-// Normally you don't need to touch this: the app uses the same laptop
-// that runs "npx expo start". If it can't connect, put your laptop's IP
-// here, e.g. "http://192.168.43.120:8000" (keep the quotes).
+// 1. A server address saved in the app (Welcome screen -> "Server" or
+//    Settings -> Server address). The final APK uses this one.
+// 2. MANUAL_API_URL below, if you write one, e.g. "http://192.168.43.120:8000"
+// 3. While developing: the laptop that runs "npx expo start" (automatic)
 const MANUAL_API_URL = null;
+const SERVER_KEY = "soulsync-server"; // where the saved address lives (AsyncStorage)
 // ------------------------------------------------------------------
 
-function findServer() {
+// Find the server automatically (no saved address)
+function autoServer() {
   if (MANUAL_API_URL) return MANUAL_API_URL;
   // hostUri looks like "192.168.43.120:8081" = the laptop running Expo
   const expoHost = Constants.expoConfig?.hostUri?.split(":")[0];
@@ -20,18 +24,104 @@ function findServer() {
   return "http://10.0.2.2:8000"; // Android emulator -> the laptop
 }
 
-export const API_URL = findServer();
+let apiUrl = autoServer();
+let savedServer = null; // the address the user typed in the app (or null)
+
+// The server address the app is using right now
+export function getApiUrl() {
+  return apiUrl;
+}
+
+// true when the user typed an address in the app
+export function hasSavedServer() {
+  return savedServer !== null;
+}
+
+// "192.168.43.5" -> "http://192.168.43.5:8000"
+export function normalizeServer(text) {
+  let url = text.trim().replace(/\/+$/, "");
+  if (!url) return null;
+  if (!/^https?:\/\//.test(url)) url = "http://" + url;
+  const host = url.replace(/^https?:\/\//, "");
+  // plain http without a port = our uvicorn on 8000 (https online servers keep theirs)
+  if (url.startsWith("http://") && !/:\d+$/.test(host)) url += ":8000";
+  return url;
+}
+
+// Called once when the app opens (before checking the saved login)
+export async function loadSavedServer() {
+  try {
+    const saved = await AsyncStorage.getItem(SERVER_KEY);
+    if (saved) {
+      savedServer = saved;
+      apiUrl = saved;
+    }
+  } catch {
+    // nothing saved -> keep the automatic address
+  }
+  return apiUrl;
+}
+
+// GET / on that address: is our SoulSync server really there?
+export async function testServer(url) {
+  try {
+    const response = await withTimeout(fetch(url + "/"), 6000);
+    const data = await response.json();
+    return typeof data?.message === "string" && data.message.includes("SoulSync");
+  } catch {
+    return false;
+  }
+}
+
+// Save a new server address (stays after closing the app)
+export async function saveServer(url) {
+  savedServer = url;
+  apiUrl = url;
+  try {
+    await AsyncStorage.setItem(SERVER_KEY, url);
+  } catch {
+    // could not save; it still works until the app closes
+  }
+}
+
+// Forget the typed address and find the server automatically again
+export async function resetServer() {
+  savedServer = null;
+  apiUrl = autoServer();
+  try {
+    await AsyncStorage.removeItem(SERVER_KEY);
+  } catch {
+    // nothing to remove
+  }
+}
+
+// Stop waiting after some seconds (so "Logging in..." never hangs forever)
+function withTimeout(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
 
 // ---- photos: the server saves "/uploads/abc.jpg", the app needs the full link
 export function fullUrl(path) {
-  if (typeof path === "string" && path.startsWith("/")) return API_URL + path;
+  if (typeof path === "string" && path.startsWith("/")) return apiUrl + path;
   return path;
 }
 
 // ...and before sending a photo back, turn the full link into "/uploads/abc.jpg" again
 function serverPath(url) {
-  if (typeof url === "string" && url.startsWith(API_URL)) {
-    return url.slice(API_URL.length);
+  if (typeof url === "string" && url.startsWith(apiUrl)) {
+    return url.slice(apiUrl.length);
   }
   return url;
 }
@@ -54,20 +144,22 @@ function fixMessage(message) {
 }
 
 // ---- the one function that talks to the server: fetch -> check -> json
-async function request(path, { method = "GET", body } = {}) {
+async function request(path, { method = "GET", body, timeout = 15000 } = {}) {
   let response;
   try {
-    response = await fetch(API_URL + path, {
-      method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    response = await withTimeout(
+      fetch(apiUrl + path, {
+        method,
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+      }),
+      timeout,
+    );
   } catch {
-    // no answer at all = the server is off, or the phone is on another WiFi
+    // no answer = the server is off, the address is wrong, or another WiFi
     throw new Error(
-      "Can't reach the server at " +
-        API_URL +
-        ". Is it running, and are you on the same WiFi/hotspot?",
+      "Can't reach the server at " + apiUrl +
+        ". Is it running, and are you on the same WiFi/hotspot? You can change the server on the Welcome screen.",
     );
   }
   const data = await response.json().catch(() => null);
@@ -88,14 +180,14 @@ async function uploadPhoto(uri) {
     data = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = () =>
-        reject(new Error("Could not read the photo. Please pick it again."));
+      reader.onerror = () => reject(new Error("Could not read the photo. Please pick it again."));
       reader.readAsDataURL(blob);
     });
   }
   const result = await request("/upload-base64", {
     method: "POST",
     body: { data },
+    timeout: 60000, // photos are big: wait up to 1 minute
   });
   return result.url; // "/uploads/abc.jpg"
 }
@@ -112,18 +204,13 @@ async function preparePhoto(uri) {
 // ================================================================ ACCOUNTS
 // POST /login
 export async function apiLogin(email, password) {
-  return fixUser(
-    await request("/login", { method: "POST", body: { email, password } }),
-  );
+  return fixUser(await request("/login", { method: "POST", body: { email, password } }));
 }
 
 // POST /register
 export async function apiRegister(username, email, password) {
   return fixUser(
-    await request("/register", {
-      method: "POST",
-      body: { username, email, password },
-    }),
+    await request("/register", { method: "POST", body: { username, email, password } }),
   );
 }
 
@@ -150,6 +237,11 @@ export async function apiGetUser(id) {
 // New photos are uploaded first, then their links are saved.
 export async function apiUpdateUser(id, changes) {
   const body = { ...changes };
+  // interests use PUT (replace the whole list), everything else uses PATCH
+  if ("tags" in body) {
+    await apiReplaceInterests(id, body.tags);
+    delete body.tags;
+  }
   if ("avatar" in body) body.avatar = await preparePhoto(body.avatar);
   if ("verificationPhoto" in body) {
     body.verificationPhoto = await preparePhoto(body.verificationPhoto);
@@ -159,6 +251,11 @@ export async function apiUpdateUser(id, changes) {
   }
   delete body.images; // the server builds images from avatar + photos
   return fixUser(await request("/users/" + id, { method: "PATCH", body }));
+}
+
+// PUT /users/:id/interests = REPLACE the whole interests list
+export async function apiReplaceInterests(id, tags) {
+  return fixUser(await request("/users/" + id + "/interests", { method: "PUT", body: { tags } }));
 }
 
 // ================================================================ LIKES & BLOCKS
@@ -172,6 +269,14 @@ export function apiLike(fromId, toId) {
   return request("/likes", {
     method: "POST",
     body: { from_id: Number(fromId), to_id: Number(toId) },
+  });
+}
+
+// POST /likes/seen = I saw these "X liked you" notifications
+export function apiMarkLikesSeen(myId, fromIds) {
+  return request("/likes/seen", {
+    method: "POST",
+    body: { user_id: Number(myId), from_ids: fromIds.map(Number) },
   });
 }
 
@@ -193,12 +298,20 @@ export function apiBlock(fromId, toId) {
   });
 }
 
+// GET /users/:id/blocked -> { blocked: [...] } (only people I blocked)
+export function apiGetBlocked(id) {
+  return request("/users/" + id + "/blocked");
+}
+
+// DELETE /blocks/:from/:to = unblock
+export function apiUnblock(fromId, toId) {
+  return request("/blocks/" + fromId + "/" + toId, { method: "DELETE" });
+}
+
 // ================================================================ MESSAGES
 // GET /messages?user_a=..&user_b=.. = one conversation
 export async function apiGetMessages(myId, otherId) {
-  const messages = await request(
-    "/messages?user_a=" + myId + "&user_b=" + otherId,
-  );
+  const messages = await request("/messages?user_a=" + myId + "&user_b=" + otherId);
   return messages.map(fixMessage);
 }
 
@@ -207,12 +320,7 @@ export async function apiSendMessage(myId, otherId, text, photo) {
   const image = photo ? await preparePhoto(photo) : null;
   const message = await request("/messages", {
     method: "POST",
-    body: {
-      sender_id: Number(myId),
-      receiver_id: Number(otherId),
-      text,
-      image,
-    },
+    body: { sender_id: Number(myId), receiver_id: Number(otherId), text, image },
   });
   return fixMessage(message);
 }
@@ -227,10 +335,7 @@ export function apiMarkRead(myId, otherId) {
 
 // POST /users/:id/delete-account = delete my account (needs my password)
 export function apiDeleteAccount(id, password) {
-  return request("/users/" + id + "/delete-account", {
-    method: "POST",
-    body: { password },
-  });
+  return request("/users/" + id + "/delete-account", { method: "POST", body: { password } });
 }
 
 // POST /messages/:id/reactions = react (love, like, haha, wow, sad, angry)
@@ -244,12 +349,9 @@ export async function apiReact(messageId, myId, reaction) {
 
 // DELETE /messages/:id/reactions/:userId = remove my reaction
 export async function apiRemoveReaction(messageId, myId) {
-  const message = await request(
-    "/messages/" + messageId + "/reactions/" + myId,
-    {
-      method: "DELETE",
-    },
-  );
+  const message = await request("/messages/" + messageId + "/reactions/" + myId, {
+    method: "DELETE",
+  });
   return fixMessage(message);
 }
 
@@ -261,8 +363,5 @@ export function apiDeleteMessage(messageId) {
 // GET /users/:id/inbox = my conversations, newest first
 export async function apiGetInbox(id) {
   const inbox = await request("/users/" + id + "/inbox");
-  return inbox.map((item) => ({
-    ...item,
-    lastMessage: fixMessage(item.lastMessage),
-  }));
+  return inbox.map((item) => ({ ...item, lastMessage: fixMessage(item.lastMessage) }));
 }

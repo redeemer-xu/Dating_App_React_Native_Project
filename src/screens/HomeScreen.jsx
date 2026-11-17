@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from "expo-router";
-import { Flame, Search, SlidersHorizontal, X } from "lucide-react-native";
+import { Bell, Flame, Search, SlidersHorizontal, X } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   ScrollView,
@@ -29,7 +29,8 @@ export default function HomeScreen() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { currentUser: user } = useAuth();
-  const { addMatch, isHidden, matchIds, refreshMatches } = useMatches();
+  const { addMatch, isHidden, matchIds, refreshMatches, unseenLikes, likeRequests } =
+    useMatches();
   const { profiles, loading, error, refreshProfiles, saveProfile } = useProfiles();
 
   // Every time you open Discover: get the newest profiles from the server
@@ -102,9 +103,11 @@ export default function HomeScreen() {
 
   const handleLike = () => {
     if (!profile) return;
+    // did they already like me? then liking them back = a real match
+    const theyLikedMe = likeRequests.some((r) => r.fromId === profile.id);
     addMatch(profile.id); // goes to the Matches tab
     markSeen(profile.id); // next person shows up
-    setMatchedUser(profile); // pop-up "It's a Match!"
+    if (theyLikedMe) setMatchedUser(profile); // pop-up "It's a Match!"
   };
 
   return (
@@ -118,8 +121,23 @@ export default function HomeScreen() {
             <Text style={styles.title}>Find your person.</Text>
           </View>
 
+          {/* bell = who liked you (red number = new likes) */}
           <TouchableOpacity
             style={styles.filterButton}
+            activeOpacity={0.8}
+            onPress={() => router.push("/likes")}
+            accessibilityLabel="Likes"
+          >
+            <Bell size={18} color={colors.textOnDark} />
+            {unseenLikes > 0 ? (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>{unseenLikes}</Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterButton, styles.filterGap]}
             activeOpacity={0.8}
             onPress={() => setSettingsVisible(true)}
           >
@@ -355,6 +373,26 @@ const makeStyles = (colors) =>
   },
   heading: {
     flex: 1,
+  },
+  filterGap: {
+    marginLeft: 8,
+  },
+  bellBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bellBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "800",
   },
   filterButton: {
     width: 40,

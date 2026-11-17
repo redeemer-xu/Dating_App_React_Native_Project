@@ -42,6 +42,8 @@ export default function RootLayout() {
                     />
                     <Stack.Screen name="profile/edit" dangerouslySingular />
                     <Stack.Screen name="settings" dangerouslySingular />
+                    <Stack.Screen name="blocked" dangerouslySingular />
+                    <Stack.Screen name="likes" dangerouslySingular />
                   </Stack>
                 </MatchesProvider>
               </ChatProvider>

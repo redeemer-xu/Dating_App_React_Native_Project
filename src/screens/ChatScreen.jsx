@@ -4,6 +4,7 @@ import {
   Ban,
   Camera,
   ChevronLeft,
+  Heart,
   HeartOff,
   ImageIcon,
   MoreVertical,
@@ -51,13 +52,22 @@ export default function ChatScreen() {
     loadConversation,
     chatError,
   } = useChat();
-  const { matchIds, removeMatch, blockUser, isHidden } = useMatches();
+  const {
+    matchIds,
+    mutualIds,
+    addMatch,
+    refreshMatches,
+    removeMatch,
+    blockUser,
+    isHidden,
+  } = useMatches();
   const [draft, setDraft] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [photo, setPhoto] = useState(null); // photo waiting to be sent
   const [sending, setSending] = useState(false);
   const [pressedMessage, setPressedMessage] = useState(null); // long-pressed message
   const [bigPhoto, setBigPhoto] = useState(null); // photo opened full screen
+  const [likingBack, setLikingBack] = useState(false); // "Like back" in a request
 
   const me = currentUser?.id;
   const other = getProfile(id);
@@ -86,6 +96,25 @@ export default function ChatScreen() {
     from: m.senderId === me ? "me" : "them",
   }));
   const isMatch = matchIds.includes(id);
+
+  // ---- message requests (until you both liked each other) ----
+  const isMutual = mutualIds.includes(id);
+  const theyWrote = messages.some((m) => m.from === "them");
+  const iWrote = messages.some((m) => m.from === "me");
+  // "request" = they messaged me first: like them back to reply
+  // "waiting" = I sent my 1 message: wait for them to like me back
+  // "first"   = nobody wrote yet: my first message is a request
+  let chatState = "open";
+  if (!isMutual) {
+    if (theyWrote && !isMatch) chatState = "request";
+    else if (iWrote) chatState = "waiting";
+    else chatState = "first";
+  }
+  const handleLikeBack = async () => {
+    setLikingBack(true);
+    await addMatch(id); // POST /likes -> now you're a match
+    setLikingBack(false);
+  };
   // my newest message: shows "Seen" once they open the chat
   const lastMine = [...messages].reverse().find((m) => m.from === "me");
 
@@ -100,6 +129,7 @@ export default function ChatScreen() {
     setSending(true);
     try {
       await sendMessage(id, text, sentPhoto);
+      if (!isMutual) refreshMatches(); // a first message also counts as a like
     } catch (err) {
       setDraft(text); // give the text and photo back so they aren't lost
       setPhoto(sentPhoto);
@@ -157,17 +187,21 @@ export default function ChatScreen() {
 
   const handleUnmatch = () => {
     setMenuOpen(false);
-    Alert.alert("Unmatch with " + other.name + "?", "They will be removed from your matches.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Unmatch",
-        style: "destructive",
-        onPress: () => {
-          removeMatch(id);
-          router.back();
+    Alert.alert(
+      "Unmatch with " + other.name + "?",
+      "They will be removed from your matches.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unmatch",
+          style: "destructive",
+          onPress: () => {
+            removeMatch(id);
+            router.back();
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleBlockReport = () => {
@@ -181,7 +215,10 @@ export default function ChatScreen() {
           text: "Report",
           onPress: () => {
             blockUser(id);
-            Alert.alert("Thanks for reporting", "We blocked this user for you.");
+            Alert.alert(
+              "Thanks for reporting",
+              "We blocked this user for you.",
+            );
             router.back();
           },
         },
@@ -204,7 +241,10 @@ export default function ChatScreen() {
           <ChevronLeft size={26} color={colors.textOnDark} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.headerCenter} onPress={handleViewProfile}>
+        <TouchableOpacity
+          style={styles.headerCenter}
+          onPress={handleViewProfile}
+        >
           <Avatar uri={other.avatar} name={other.name} size={36} />
           <View style={styles.headerTextGroup}>
             <View style={styles.headerNameRow}>
@@ -226,20 +266,32 @@ export default function ChatScreen() {
         animationType="fade"
         onRequestClose={() => setMenuOpen(false)}
       >
-        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
+        <Pressable
+          style={styles.menuBackdrop}
+          onPress={() => setMenuOpen(false)}
+        >
           <SafeAreaView edges={["top"]}>
             <View style={styles.menu}>
-              <TouchableOpacity style={styles.menuItem} onPress={handleViewProfile}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleViewProfile}
+              >
                 <User size={18} color={colors.textOnDark} />
                 <Text style={styles.menuText}>View profile</Text>
               </TouchableOpacity>
               {isMatch ? (
-                <TouchableOpacity style={styles.menuItem} onPress={handleUnmatch}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={handleUnmatch}
+                >
                   <HeartOff size={18} color={colors.textOnDark} />
                   <Text style={styles.menuText}>Unmatch</Text>
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity style={styles.menuItem} onPress={handleBlockReport}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleBlockReport}
+              >
                 <Ban size={18} color={colors.error} />
                 <Text style={[styles.menuText, { color: colors.error }]}>
                   Block / Report
@@ -271,7 +323,9 @@ export default function ChatScreen() {
             </View>
           }
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No messages yet. Send the first one!</Text>
+            <Text style={styles.emptyText}>
+              No messages yet. Send the first one!
+            </Text>
           }
           renderItem={({ item }) => (
             <MessageBubble
@@ -287,7 +341,11 @@ export default function ChatScreen() {
         {photo ? (
           <View style={styles.previewRow}>
             <View>
-              <Image source={{ uri: photo }} style={styles.preview} contentFit="cover" />
+              <Image
+                source={{ uri: photo }}
+                style={styles.preview}
+                contentFit="cover"
+              />
               <TouchableOpacity
                 style={styles.previewRemove}
                 onPress={() => setPhoto(null)}
@@ -303,46 +361,82 @@ export default function ChatScreen() {
           </View>
         ) : null}
 
-        <View style={styles.composerRow}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleGallery}
-            disabled={sending}
-            hitSlop={6}
-            accessibilityLabel="Send a photo from gallery"
-          >
-            <ImageIcon size={22} color={colors.accent} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleCamera}
-            disabled={sending}
-            hitSlop={6}
-            accessibilityLabel="Take a photo"
-          >
-            <Camera size={22} color={colors.accent} />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.composerInput}
-            placeholder="Message..."
-            placeholderTextColor={colors.textOnDarkMuted}
-            value={draft}
-            onChangeText={setDraft}
-            multiline
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (sending || (!draft.trim() && !photo)) && styles.sendButtonOff,
-            ]}
-            activeOpacity={0.85}
-            onPress={handleSend}
-            disabled={sending}
-            accessibilityLabel="Send"
-          >
-            <Send size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
+        {chatState === "request" ? (
+          // they messaged first: ask to like back before replying
+          <View style={styles.requestBar}>
+            <Text style={styles.requestText}>
+              {other.name} sent you a message request. Like {other.name} back to
+              reply.
+            </Text>
+            <TouchableOpacity
+              style={styles.requestButton}
+              onPress={handleLikeBack}
+              disabled={likingBack}
+              accessibilityLabel="Like back to reply"
+            >
+              <Heart size={16} color="#FFFFFF" fill="#FFFFFF" />
+              <Text style={styles.requestButtonText}>
+                {likingBack ? "Liking..." : "Like back"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : chatState === "waiting" ? (
+          <View style={styles.requestBar}>
+            <Text style={styles.requestText}>
+              Message request sent. You can send more when {other.name} likes
+              you back.
+            </Text>
+          </View>
+        ) : (
+          <>
+            {chatState === "first" ? (
+              <Text style={styles.firstHint}>
+                You can send 1 message until {other.name} likes you back.
+              </Text>
+            ) : null}
+            <View style={styles.composerRow}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleGallery}
+                disabled={sending}
+                hitSlop={6}
+                accessibilityLabel="Send a photo from gallery"
+              >
+                <ImageIcon size={22} color={colors.accent} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleCamera}
+                disabled={sending}
+                hitSlop={6}
+                accessibilityLabel="Take a photo"
+              >
+                <Camera size={22} color={colors.accent} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.composerInput}
+                placeholder="Message..."
+                placeholderTextColor={colors.textOnDarkMuted}
+                value={draft}
+                onChangeText={setDraft}
+                multiline
+              />
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  (sending || (!draft.trim() && !photo)) &&
+                    styles.sendButtonOff,
+                ]}
+                activeOpacity={0.85}
+                onPress={handleSend}
+                disabled={sending}
+                accessibilityLabel="Send"
+              >
+                <Send size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </KeyboardAvoidingView>
 
       {/* long press a message */}
@@ -364,7 +458,11 @@ export default function ChatScreen() {
       >
         <View style={styles.viewer}>
           {bigPhoto ? (
-            <Image source={{ uri: bigPhoto }} style={styles.viewerImage} contentFit="contain" />
+            <Image
+              source={{ uri: bigPhoto }}
+              style={styles.viewerImage}
+              contentFit="contain"
+            />
           ) : null}
           <SafeAreaView style={styles.viewerClose} edges={["top"]}>
             <TouchableOpacity onPress={() => setBigPhoto(null)} hitSlop={12}>
@@ -379,173 +477,207 @@ export default function ChatScreen() {
 
 const makeStyles = (colors) =>
   StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  missingText: {
-    color: colors.textOnDarkSecondary,
-    textAlign: "center",
-    marginTop: 40,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  headerCenter: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  headerTextGroup: {
-    justifyContent: "center",
-  },
-  headerNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  headerName: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.textOnDark,
-  },
-  messageList: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  dateSeparator: {
-    alignSelf: "center",
-    backgroundColor: colors.card,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginBottom: 20,
-  },
-  dateSeparatorText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: colors.textOnDarkMuted,
-    letterSpacing: 0.3,
-  },
-  errorBanner: {
-    color: "#FFFFFF",
-    backgroundColor: colors.error,
-    fontSize: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  emptyText: {
-    color: colors.textOnDarkMuted,
-    textAlign: "center",
-    fontSize: 13,
-  },
-  menuBackdrop: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-  },
-  menu: {
-    alignSelf: "flex-end",
-    marginTop: 8,
-    marginRight: 12,
-    minWidth: 190,
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    paddingVertical: 6,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  menuText: {
-    color: colors.textOnDark,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  composerRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-  },
-  composerInput: {
-    flex: 1,
-    maxHeight: 100,
-    backgroundColor: colors.card,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    color: colors.textOnDark,
-    fontSize: 15,
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sendButtonOff: {
-    opacity: 0.5,
-  },
-  iconButton: {
-    height: 40,
-    width: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  previewRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-  },
-  preview: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-  },
-  previewRemove: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "rgba(0,0,0,0.75)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  previewHint: {
-    color: colors.textOnDarkMuted,
-    fontSize: 13,
-  },
-  viewer: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
-  viewerImage: {
-    flex: 1,
-  },
-  viewerClose: {
-    position: "absolute",
-    top: 0,
-    right: 16,
-    paddingTop: 12,
-  },
-});
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    missingText: {
+      color: colors.textOnDarkSecondary,
+      textAlign: "center",
+      marginTop: 40,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.divider,
+    },
+    headerCenter: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    headerTextGroup: {
+      justifyContent: "center",
+    },
+    headerNameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    headerName: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.textOnDark,
+    },
+    messageList: {
+      padding: 16,
+      paddingBottom: 8,
+    },
+    dateSeparator: {
+      alignSelf: "center",
+      backgroundColor: colors.card,
+      borderRadius: 999,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      marginBottom: 20,
+    },
+    dateSeparatorText: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: colors.textOnDarkMuted,
+      letterSpacing: 0.3,
+    },
+    errorBanner: {
+      color: "#FFFFFF",
+      backgroundColor: colors.error,
+      fontSize: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+    },
+    emptyText: {
+      color: colors.textOnDarkMuted,
+      textAlign: "center",
+      fontSize: 13,
+    },
+    menuBackdrop: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+    },
+    menu: {
+      alignSelf: "flex-end",
+      marginTop: 8,
+      marginRight: 12,
+      minWidth: 190,
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      paddingVertical: 6,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    menuText: {
+      color: colors.textOnDark,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    composerRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.divider,
+    },
+    composerInput: {
+      flex: 1,
+      maxHeight: 100,
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      color: colors.textOnDark,
+      fontSize: 15,
+    },
+    sendButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sendButtonOff: {
+      opacity: 0.5,
+    },
+    requestBar: {
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.divider,
+      backgroundColor: colors.card,
+    },
+    requestText: {
+      color: colors.textOnDarkSecondary,
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: "center",
+    },
+    requestButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: colors.accent,
+      borderRadius: 999,
+      paddingVertical: 11,
+    },
+    requestButtonText: {
+      color: "#FFFFFF",
+      fontSize: 14,
+      fontWeight: "700",
+    },
+    firstHint: {
+      color: colors.textOnDarkMuted,
+      fontSize: 12,
+      textAlign: "center",
+      paddingTop: 8,
+    },
+    iconButton: {
+      height: 40,
+      width: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    previewRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.divider,
+    },
+    preview: {
+      width: 64,
+      height: 64,
+      borderRadius: 12,
+    },
+    previewRemove: {
+      position: "absolute",
+      top: -6,
+      right: -6,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: "rgba(0,0,0,0.75)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    previewHint: {
+      color: colors.textOnDarkMuted,
+      fontSize: 13,
+    },
+    viewer: {
+      flex: 1,
+      backgroundColor: "#000000",
+    },
+    viewerImage: {
+      flex: 1,
+    },
+    viewerClose: {
+      position: "absolute",
+      top: 0,
+      right: 16,
+      paddingTop: 12,
+    },
+  });
