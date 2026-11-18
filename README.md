@@ -23,7 +23,7 @@ Get the newest **SoulSync APK** from the [**Releases**](https://github.com/redee
 | Onboarding | Name, birthday, gender, Show Me, looking for, profile photo + 5 photos, interests, prompt |
 | Verified badge | Take a **selfie with the front camera** → blue check on your profile |
 | Discover | Swipe cards (like / nope), photo gallery, **search** by name or interest, filters: age, **distance (km)**, Show Me, verified only |
-| Matches | New sparks, people who liked you, inbox with **unread badge** |
+| Matches | Your matches, **Pending** likes (undo like), people who liked you, "X liked you" pop-up, inbox with **unread badge**, **hold a chat to delete it** (only for you) |
 | Chat | Real messages between phones, **photos from gallery or camera**, **reactions** (❤️ 👍 😂 😮 😢 😡), "Seen", delete message, unmatch, block |
 | Map | Native map (MapLibre + OpenStreetMap) with everyone's photo pins and your GPS location |
 | Profile & Settings | Edit profile, **Dark / Light / System** theme, server address, sign out |
@@ -106,6 +106,7 @@ eas build --profile preview --platform android
 | POST | `/messages/read` | Mark as seen |
 | POST / DELETE | `/messages/{id}/reactions`, `/messages/{id}/reactions/{user}` | Reactions |
 | GET | `/users/{id}/inbox` | Conversations + unread counts |
+| DELETE | `/users/{id}/chats/{otherId}` | Delete a whole chat (only for me) |
 
 ## 👥 Team
 

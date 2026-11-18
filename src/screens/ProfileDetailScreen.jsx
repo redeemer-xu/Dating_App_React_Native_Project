@@ -1,7 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Clock } from "lucide-react-native";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,9 +26,11 @@ export default function ProfileDetailScreen() {
   const styles = makeStyles(colors);
   const { id } = useLocalSearchParams();
   const { getProfile } = useProfiles();
-  const { isHidden } = useMatches();
+  const { isHidden, matchIds, mutualIds, removeMatch } = useMatches();
   const { currentUser } = useAuth();
   const profile = getProfile(id);
+  // I liked them, but they have not liked me back yet
+  const isPending = matchIds.includes(String(id)) && !mutualIds.includes(String(id));
 
   if (!profile || isHidden(id)) {
     return (
@@ -36,6 +39,17 @@ export default function ProfileDetailScreen() {
       </SafeAreaView>
     );
   }
+
+  const confirmUndoLike = () => {
+    Alert.alert(
+      "Undo like?",
+      profile.name + " will go back to Discover. You can like them again later.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Undo like", style: "destructive", onPress: () => removeMatch(String(id)) },
+      ],
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -94,6 +108,18 @@ export default function ProfileDetailScreen() {
         </View>
 
         <View style={styles.body}>
+          {isPending ? (
+            <View style={styles.pendingCard}>
+              <View style={styles.pendingRow}>
+                <Clock size={16} color={colors.accent} />
+                <Text style={styles.pendingText}>Like sent · waiting</Text>
+              </View>
+              <TouchableOpacity onPress={confirmUndoLike}>
+                <Text style={styles.undoText}>Undo like</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>About Me</Text>
             <View style={styles.card}>
@@ -213,6 +239,31 @@ const makeStyles = (colors) =>
   body: {
     paddingHorizontal: 20,
     paddingTop: 24,
+  },
+  pendingCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 22,
+  },
+  pendingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  pendingText: {
+    color: colors.textOnDark,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  undoText: {
+    color: colors.error,
+    fontSize: 14,
+    fontWeight: "700",
   },
   section: {
     marginBottom: 26,

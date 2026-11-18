@@ -360,6 +360,11 @@ export function apiDeleteMessage(messageId) {
   return request("/messages/" + messageId, { method: "DELETE" });
 }
 
+// DELETE /users/:me/chats/:otherId = delete the whole chat (only for me)
+export function apiDeleteChat(myId, otherId) {
+  return request("/users/" + myId + "/chats/" + otherId, { method: "DELETE" });
+}
+
 // GET /users/:id/inbox = my conversations, newest first
 export async function apiGetInbox(id) {
   const inbox = await request("/users/" + id + "/inbox");
