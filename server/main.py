@@ -263,22 +263,44 @@ def setup_database():
                         (json.dumps(profile), row["id"]),
                     )
 
+        # Brand new (empty) database: add the 5 team accounts once
         empty = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
         if empty:
-            for username, email, password, fields in TEAM:
-                lat, lng = TEAM_SPOTS[email]
-                profile = {
-                    **DEFAULT_PROFILE,
-                    "title": "BSIT Student",
-                    **fields,
-                    "latitude": lat,
-                    "longitude": lng,
-                    "onboarded": True,
-                }
-                conn.execute(
-                    "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
-                    (username, email, hash_password(password), json.dumps(profile)),
-                )
+            for account in TEAM:
+                add_team_account(conn, *account)
+
+
+def add_team_account(conn, username, email, password, fields):
+    """Insert one of the hard-coded team accounts (see TEAM above)."""
+    lat, lng = TEAM_SPOTS[email]
+    profile = {
+        **DEFAULT_PROFILE,
+        "title": "BSIT Student",
+        **fields,
+        "latitude": lat,
+        "longitude": lng,
+        "onboarded": True,
+    }
+    conn.execute(
+        "INSERT INTO users (username, email, password_hash, profile) VALUES (?, ?, ?, ?)",
+        (username, email, hash_password(password), json.dumps(profile)),
+    )
+
+
+def restore_team() -> list:
+    """Bring back only the team accounts that were deleted.
+    Everyone else (and their chats, likes, photos) stays untouched."""
+    restored = []
+    with db() as conn:
+        for account in TEAM:
+            email = account[1]
+            if (
+                conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone()
+                is None
+            ):
+                add_team_account(conn, *account)
+                restored.append(account[3]["name"])
+    return restored
 
 
 setup_database()
@@ -925,3 +947,19 @@ def get_inbox(user_id: int):
                 }
             )
         return inbox
+
+
+# ---- command line
+# python main.py --restore-team  -> bring back deleted team accounts
+if __name__ == "__main__":
+    import sys
+
+    if "--restore-team" in sys.argv:
+        names = restore_team()
+        if names:
+            print("Restored: " + ", ".join(names))
+        else:
+            print("All 5 team accounts are already here. Nothing to restore.")
+    else:
+        print("Start the server with: uvicorn main:app --host 0.0.0.0 --port 8000")
+        print("Bring back deleted team accounts with: python main.py --restore-team")
