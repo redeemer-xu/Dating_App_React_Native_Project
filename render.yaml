@@ -1,0 +1,18 @@
+# Render reads this file to put the SoulSync server online (Blueprint).
+# Render dashboard -> New -> Blueprint -> pick this GitHub repo.
+services:
+  - type: web
+    name: soulsync-api
+    runtime: python
+    plan: free
+    region: singapore              # closest to the Philippines
+    rootDir: server                # main.py lives in the server folder
+    # psycopg = how Python talks to the Neon Postgres database (only needed online)
+    buildCommand: pip install -r requirements.txt "psycopg[binary,pool]"
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: DATABASE_URL          # paste the Neon connection string when Render asks
+        sync: false
