@@ -5,9 +5,15 @@ import { Platform } from "react-native";
 // ------------------------------------------------------------------
 // WHERE IS OUR FASTAPI SERVER?
 // 1. A server address saved in the app (Welcome screen -> "Server" or
-//    Settings -> Server address). The final APK uses this one.
+//    Settings -> Server address).
 // 2. MANUAL_API_URL below, if you write one, e.g. "http://192.168.43.120:8000"
-// 3. While developing: the laptop that runs "npx expo start" (automatic)
+// 3. While developing ("npx expo start"): the laptop running Expo (automatic)
+// 4. The final APK: our server online on Render (works anywhere with internet)
+
+// Our server online. After deploying on Render, paste YOUR address here
+// (Render dashboard -> soulsync-api -> the link at the top).
+export const ONLINE_API_URL = "https://soulsync-api.onrender.com";
+
 const MANUAL_API_URL = null;
 const SERVER_KEY = "soulsync-server"; // where the saved address lives (AsyncStorage)
 // ------------------------------------------------------------------
@@ -18,10 +24,16 @@ function autoServer() {
   // hostUri looks like "192.168.43.120:8081" = the laptop running Expo
   const expoHost = Constants.expoConfig?.hostUri?.split(":")[0];
   if (expoHost) return "http://" + expoHost + ":8000";
-  if (Platform.OS === "web" && typeof window !== "undefined") {
-    return "http://" + window.location.hostname + ":8000";
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.location.hostname === "localhost") {
+    return "http://localhost:8000";
   }
-  return "http://10.0.2.2:8000"; // Android emulator -> the laptop
+  return ONLINE_API_URL; // the APK: no laptop needed
+}
+
+// https = our server online on Render. The free server can take up to
+// 1 minute to wake up if nobody used it for a while, so we wait longer.
+export function isOnlineServer(url) {
+  return typeof url === "string" && url.startsWith("https://");
 }
 
 let apiUrl = autoServer();
@@ -65,7 +77,7 @@ export async function loadSavedServer() {
 // GET / on that address: is our SoulSync server really there?
 export async function testServer(url) {
   try {
-    const response = await withTimeout(fetch(url + "/"), 6000);
+    const response = await withTimeout(fetch(url + "/"), isOnlineServer(url) ? 70000 : 6000);
     const data = await response.json();
     return typeof data?.message === "string" && data.message.includes("SoulSync");
   } catch {
@@ -112,13 +124,13 @@ function withTimeout(promise, ms) {
   });
 }
 
-// ---- photos: the server saves "/uploads/abc.jpg", the app needs the full link
+// ---- photos: the server saves "/photos/abc.jpg", the app needs the full link
 export function fullUrl(path) {
   if (typeof path === "string" && path.startsWith("/")) return apiUrl + path;
   return path;
 }
 
-// ...and before sending a photo back, turn the full link into "/uploads/abc.jpg" again
+// ...and before sending a photo back, turn the full link into "/photos/abc.jpg" again
 function serverPath(url) {
   if (typeof url === "string" && url.startsWith(apiUrl)) {
     return url.slice(apiUrl.length);
@@ -144,7 +156,8 @@ function fixMessage(message) {
 }
 
 // ---- the one function that talks to the server: fetch -> check -> json
-async function request(path, { method = "GET", body, timeout = 15000 } = {}) {
+async function request(path, { method = "GET", body, timeout } = {}) {
+  const online = isOnlineServer(apiUrl);
   let response;
   try {
     response = await withTimeout(
@@ -153,10 +166,15 @@ async function request(path, { method = "GET", body, timeout = 15000 } = {}) {
         headers: body ? { "Content-Type": "application/json" } : undefined,
         body: body ? JSON.stringify(body) : undefined,
       }),
-      timeout,
+      timeout ?? (online ? 70000 : 15000), // online: room for waking up
     );
   } catch {
-    // no answer = the server is off, the address is wrong, or another WiFi
+    if (online) {
+      throw new Error(
+        "Can't reach the SoulSync server. Check your internet, then try again.",
+      );
+    }
+    // no answer = the laptop server is off, the address is wrong, or another WiFi
     throw new Error(
       "Can't reach the server at " + apiUrl +
         ". Is it running, and are you on the same WiFi/hotspot? You can change the server on the Welcome screen.",
@@ -187,9 +205,9 @@ async function uploadPhoto(uri) {
   const result = await request("/upload-base64", {
     method: "POST",
     body: { data },
-    timeout: 60000, // photos are big: wait up to 1 minute
+    timeout: 90000, // photos are big: wait up to 1.5 minutes
   });
-  return result.url; // "/uploads/abc.jpg"
+  return result.url; // "/photos/abc.jpg"
 }
 
 // A photo that is only on this phone (file://, blob:) gets uploaded first.

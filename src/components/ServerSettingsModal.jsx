@@ -13,7 +13,9 @@ import {
 import {
   getApiUrl,
   hasSavedServer,
+  isOnlineServer,
   normalizeServer,
+  ONLINE_API_URL,
   resetServer,
   saveServer,
   testServer,
@@ -21,8 +23,8 @@ import {
 import { useTheme } from "../context/ThemeContext";
 import Button from "./Button";
 
-// Pop-up to type the laptop's address (where uvicorn runs).
-// Needed in the final APK, because there is no "npx expo start" to find it.
+// Pop-up to choose the server: online (Render, works anywhere)
+// or a laptop running uvicorn (for testing on the same WiFi).
 export default function ServerSettingsModal({ visible, onClose, onSaved }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -37,16 +39,25 @@ export default function ServerSettingsModal({ visible, onClose, onSaved }) {
       setMessage({ ok: false, text: "Type the laptop's IP, like 192.168.43.120" });
       return;
     }
+    await testAndSave(url);
+  };
+
+  const testAndSave = async (url) => {
     setChecking(true);
-    setMessage(null);
+    setMessage(
+      isOnlineServer(url)
+        ? { ok: true, text: "Connecting… the online server can take up to 1 minute to wake up." }
+        : null,
+    );
     const works = await testServer(url);
     setChecking(false);
     if (!works) {
       setMessage({
         ok: false,
-        text:
-          "No SoulSync server at " + url +
-          ". Check that uvicorn is running and the phone is on the same WiFi/hotspot.",
+        text: isOnlineServer(url)
+          ? "The online server didn't answer. Check your internet and try again."
+          : "No SoulSync server at " + url +
+            ". Check that uvicorn is running and the phone is on the same WiFi/hotspot.",
       });
       return;
     }
@@ -77,8 +88,8 @@ export default function ServerSettingsModal({ visible, onClose, onSaved }) {
           </View>
 
           <Text style={styles.hint}>
-            The laptop running the FastAPI server. On the laptop, run ipconfig (Windows) or
-            ip a (Linux) and type its IP here.
+            Online works anywhere with internet. To test with a laptop server instead, run
+            ipconfig (Windows) or hostname -I (Linux) on the laptop and type its IP here.
           </Text>
 
           <TextInput
@@ -104,12 +115,21 @@ export default function ServerSettingsModal({ visible, onClose, onSaved }) {
           {checking ? (
             <ActivityIndicator color={colors.accent} />
           ) : (
-            <Button title="Test & Save" variant="accent" onPress={handleSave} />
+            <>
+              <Button title="Test & Save" variant="accent" onPress={handleSave} />
+              {getApiUrl() !== ONLINE_API_URL ? (
+                <Button
+                  title="Use online server"
+                  variant="secondary"
+                  onPress={() => testAndSave(ONLINE_API_URL)}
+                />
+              ) : null}
+            </>
           )}
 
           {hasSavedServer() ? (
             <TouchableOpacity onPress={handleAutomatic} style={styles.link}>
-              <Text style={styles.linkText}>Use automatic address (for npx expo start)</Text>
+              <Text style={styles.linkText}>Use automatic address</Text>
             </TouchableOpacity>
           ) : null}
         </Pressable>
